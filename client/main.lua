@@ -2,13 +2,13 @@ local QBCore = exports[Config.Core]:GetCoreObject()
 
 local signedIn = false
 local CachedNet = nil
+local blip = nil
 
 
 
 
 
 local PlayerJob = {}
-local Blip 
 local onDuty = false
 local towtruck = 0
 local CurrentTow = nil
@@ -21,6 +21,16 @@ function notification(title, msg, action)
     elseif Config.NotificationStyle == 'qbcore' then
         QBCore.Functions.Notify(title..': '..msg, action, 5000)
     end
+end
+
+local function CreateBlip(coords)
+    blip = AddBlipForCoord(coords.x, coords.y, coords.z)
+    SetBlipScale(blip, 0.7)
+	SetBlipColour(blip, 3)
+	SetBlipRoute(blip, true)
+    BeginTextCommandSetBlipName("STRING")
+    AddTextComponentSubstringPlayerName('Tow Call')
+    EndTextCommandSetBlipName(blip)
 end
 
 local function getSpawn()
@@ -51,6 +61,7 @@ local function forceSignOut()
 
     signedIn = false
     notification("CURRENT", "You have signed out!", _, 'primary')
+    RemoveBlip(blip)
 end
 
 RegisterNetEvent('brazzers-tow:client:truckSpawned', function(NetID, plate)
@@ -68,13 +79,17 @@ RegisterNetEvent('brazzers-tow:client:forceSignOut', function()
     forceSignOut()
 end)
 
+RegisterCommand('markfortow', function()
+    TriggerEvent('brazzers-tow:client:requestTowTruck')
+end)
+
 RegisterNetEvent("brazzers-tow:client:requestTowTruck", function()
     local vehicle = QBCore.Functions.GetClosestVehicle()
     local plate = QBCore.Functions.GetPlate(vehicle)
-    local vehname = GetDisplayNameFromVehicleModel(GetEntityModel(veh)):lower()
+    local vehname = GetDisplayNameFromVehicleModel(GetEntityModel(vehicle)):lower()
 
     TriggerEvent('animations:client:EmoteCommandStart', {"phonecall"})
-    QBCore.Functions.Progressbar("calling-tow", "Calling Tow", 6500, false, false, {
+    QBCore.Functions.Progressbar("calling-tow", "Calling Tow", 1500, false, false, {
         disableMovement = true,
         disableCarMovement = false,
         disableMouse = false,
@@ -90,9 +105,22 @@ end)
 RegisterNetEvent("brazzers-tow:client:sendTowRequest", function(info, vehicle, plate, pos)
     local success = exports[Config.Phone]:PhoneNotification("JOB OFFER", 'Incoming Tow Request', 'fas fa-map-pin', '#b3e0f2', "NONE", 'fas fa-check-circle', 'fas fa-times-circle')
     if success then
-        TriggerServerEvent("brazzers-tow:server:sendTowRequest", info.Other, info.Player, vehicle, plate, pos)
+        TriggerServerEvent("brazzers-tow:server:sendTowRequest", info, vehicle, plate, pos)
     end
 end)
+
+RegisterNetEvent('brazzers-tow:client:receiveTowRequest', function(pos, vehicle, plate)
+    CreateBlip(pos)
+    TriggerEvent('qb-phone:client:CustomNotification', 'CURRENT', "Location has been marked for the vehicle!", 'fas fa-map-pin', '#b3e0f2', 2000)
+    Wait(5000)
+    TriggerEvent('qb-phone:client:CustomNotification', 'CURRENT', "Vehicle: "..vehicle.." | Plate: "..plate, 'fas fa-map-pin', '#b3e0f2', 120000)
+end)
+
+AddEventHandler('onResourceStop', function(resource)
+    if resource == GetCurrentResourceName() then
+        RemoveBlip(blip)
+    end
+ end)
 
 
 
