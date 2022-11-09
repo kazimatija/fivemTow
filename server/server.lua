@@ -57,7 +57,8 @@ local function generatePlate()
     end
 end
 
-local function spawnVehicle(carType, group, coords)
+local function spawnVehicle(source, carType, group, coords)
+    local src = source
     local CreateAutomobile = joaat('CREATE_AUTOMOBILE')
     local car = Citizen.InvokeNative(CreateAutomobile, joaat(carType), coords, true, false)
 
@@ -142,7 +143,7 @@ RegisterNetEvent('brazzers-tow:server:signIn', function(coords)
         end
     end
 
-    local vehicle, plate = spawnVehicle(Config.TowTruck, group, coords)
+    local vehicle, plate = spawnVehicle(src, Config.TowTruck, group, coords)
     if not vehicle or not plate then return TriggerClientEvent('QBCore:Notify', src, "Error try again!", "error") end
 
     Player.Functions.SetJob(Config.Job, Config.JobGrade)
@@ -156,26 +157,39 @@ end)
 RegisterNetEvent('brazzers-tow:server:markForTow', function(vehicle, plate)
     if not plate then return end
     local src = source
-    local Player QBCore.Functions.GetPlayer(src)
     local coords = GetEntityCoords(GetPlayerPed(src))
 
-    if not Player then return end
-
     markedVehicles[plate] = true
+
     for k, v in pairs(QBCore.Functions.GetPlayers()) do
         local Employees = QBCore.Functions.GetPlayer(v)
         if Employees then
             if Employees.PlayerData.job.name == 'tow' and Employees.PlayerData.job.onduty then
-                local info = {Other = Employees, Player = src}
-                TriggerClientEvent('brazzers-tow:client:sendTowRequest', Employees.PlayerData.source, info, vehicle, plate, coords)
+                if not Config.RenewedPhone then return TriggerClientEvent('brazzers-tow:client:receiveTowRequest', Employees.PlayerData.source, coords, vehicle, plate) end
+
+                local info = {Receiver = Employees, Sender = src}
+                local group = exports[Config.Phone]:GetGroupByMembers(Employees.PlayerData.source)
+                if not group then return end
+
+                if exports[Config.Phone]:isGroupLeader(Employees.PlayerData.source, group) then
+                    TriggerClientEvent('brazzers-tow:client:sendTowRequest', Employees.PlayerData.source, info, vehicle, plate, coords)
+                end
             end
         end
     end
 end)
 
-RegisterNetEvent("brazzers-tow:server:sendTowRequest", function(Other, Player, vehicle, plate, pos)
-    TriggerClientEvent('qb-phone:client:CustomNotification', Player, "CURRENT", 'A Driver Accepted Your Tow Request', 'fas fa-map-pin', '#b3e0f2', 7500)
-    TriggerClientEvent("5life-tow:client:sendingTowRequest", Other.PlayerData.source, pos, vehicle, plate)
+RegisterNetEvent("brazzers-tow:server:sendTowRequest", function(info, vehicle, plate, pos)
+    local group = exports[Config.Phone]:GetGroupByMembers(info.Receiver.PlayerData.source)
+    if not group then return end
+
+    local members = exports[Config.Phone]:getGroupMembers(group)
+    for i=1, #members do
+        TriggerClientEvent('brazzers-tow:client:receiveTowRequest', members[i], pos, vehicle, plate) -- SEND BLIP
+    end
+   
+    if not Config.RenewedPhone then return TriggerClientEvent('QBCore:Notify', info.Sender, "A driver accepted your tow request") end
+    TriggerClientEvent('qb-phone:client:CustomNotification', info.Sender, "CURRENT", 'A driver accepted your tow request', 'fas fa-map-pin', '#b3e0f2', 7500)
 end)
 
 -- Callbacks
