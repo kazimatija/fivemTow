@@ -26,3 +26,27 @@ Config.VehicleSpawns = { -- Vehicle spawns for the tow truck
     vector4(496.51, -1332.84, 29.42, 3.8),
     vector4(492.45, -1331.87, 29.41, 344.83)
 }
+
+Config.Payout = {
+    [0] = { ['payout'] = 100 }, -- Compacts
+    [1] = { ['payout'] = 100 }, -- Sedans
+    [2] = { ['payout'] = 100 }, -- SUVs
+    [3] = { ['payout'] = 100 }, -- Coupes
+    [4] = { ['payout'] = 100 }, -- Muscle
+    [5] = { ['payout'] = 100 }, -- Sports Classic
+    [6] = { ['payout'] = 100 }, -- Sports
+    [7] = { ['payout'] = 100 }, -- Super
+    [8] = { ['payout'] = 100 }, -- Motorcycles
+    [9] = { ['payout'] = 100 }, -- Off-road
+    [10] = { ['payout'] = 100 }, -- Industrial
+    [11] = { ['payout'] = 100 }, -- Utility
+    [12] = { ['payout'] = 100 }, -- Vans
+    [13] = { ['payout'] = 100 }, -- Cycles
+    [14] = { ['payout'] = 100 }, -- Boats
+    [15] = { ['payout'] = 100 }, -- Helicopters
+    [16] = { ['payout'] = 100 }, -- Planes
+    [17] = { ['payout'] = 100 }, -- Services
+    [18] = { ['payout'] = 100 }, -- Emergency
+    [19] = { ['payout'] = 100 }, -- Military
+    [20] = { ['payout'] = 100 }, -- Commercial
+}
