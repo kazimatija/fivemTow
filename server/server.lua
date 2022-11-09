@@ -20,19 +20,18 @@ local function forceSignOut(source, group, resetAll)
     local Player = QBCore.Functions.GetPlayer(src)
     if not Player then return end
 
-    if group then
-        if DoesEntityExist(NetworkGetEntityFromNetworkId(cachedTow[group].towtruck)) then
-            DeleteEntity(NetworkGetEntityFromNetworkId(cachedTow[group].towtruck))
-            if Config.DepositRequired then
-                Player.Functions.AddMoney('bank', Config.DepositAmount)
-                TriggerClientEvent('QBCore:Notify', src, "You have received your deposit back")
-            end
-        else
-            TriggerClientEvent('QBCore:Notify', src, "You did not receive your deposit back", 'error')
+    if DoesEntityExist(NetworkGetEntityFromNetworkId(cachedTow[group].towtruck)) then
+        DeleteEntity(NetworkGetEntityFromNetworkId(cachedTow[group].towtruck))
+        if Config.DepositRequired then
+            Player.Functions.AddMoney('bank', Config.DepositAmount)
+            TriggerClientEvent('QBCore:Notify', src, "You have received your deposit back")
         end
-        usedPlates[cachedTow[group].plate] = nil
-        cachedTow[group] = nil
+    else
+        TriggerClientEvent('QBCore:Notify', src, "You did not receive your deposit back", 'error')
     end
+
+    usedPlates[cachedTow[group].plate] = nil
+    cachedTow[group] = nil
 
     if not Config.RenewedPhone then return TriggerClientEvent("brazzers-tow:client:forceSignOut", src) end
 
@@ -107,7 +106,7 @@ RegisterNetEvent('brazzers-tow:server:signIn', function(coords)
     if not coords then return end
 
     local ped = GetPlayerPed(src)
-    if #(GetEntityCoords(ped) - vector3(Config.LaptopCoords.x, Config.LaptopCoords.y, Config.LaptopCoords.z)) > 5 then return forceSignOut(src, _, false) end
+    if #(GetEntityCoords(ped) - vector3(Config.LaptopCoords.x, Config.LaptopCoords.y, Config.LaptopCoords.z)) > 5 then return end
 
     local Player = QBCore.Functions.GetPlayer(src)
     if not Player then return end
@@ -118,30 +117,13 @@ RegisterNetEvent('brazzers-tow:server:signIn', function(coords)
         group = exports[Config.Phone]:GetGroupByMembers(src) or exports[Config.Phone]:CreateGroup(src, "Tow-"..Player.PlayerData.citizenid)
         local size = exports[Config.Phone]:getGroupSize(group)
 
-        if size > Config.GroupLimit then
-            TriggerClientEvent('QBCore:Notify', src, "Your group can only have "..Config.GroupLimit..' members in it', "error")
-            forceSignOut(src, _, false)
-            return
-        end
-        
-        if exports[Config.Phone]:getJobStatus(group) ~= "WAITING" then
-            TriggerClientEvent('QBCore:Notify', src, "Your group is currently busy doing something else", "error")
-            forceSignOut(src, _, false)
-            return
-        end
-        if not exports[Config.Phone]:isGroupLeader(src, group) then
-            TriggerClientEvent('QBCore:Notify', src, "You must be the group leader to sign in", "error")
-            forceSignOut(src, _, false)
-            return
-        end
+        if size > Config.GroupLimit then return TriggerClientEvent('QBCore:Notify', src, "Your group can only have "..Config.GroupLimit..' members in it', "error") end
+        if exports[Config.Phone]:getJobStatus(group) ~= "WAITING" then return TriggerClientEvent('QBCore:Notify', src, "Your group is currently busy doing something else", "error") end
+        if Config.OnlyLeader and not exports[Config.Phone]:isGroupLeader(src, group) then return TriggerClientEvent('QBCore:Notify', src, "You must be the group leader to sign in", "error") end
     end
 
     if not group then return end
-    if cachedTow[group] then
-        TriggerClientEvent('QBCore:Notify', src, "Your group is already signed in!", "error")
-        forceSignOut(src, _, false)
-        return
-    end
+    if cachedTow[group] then return TriggerClientEvent('QBCore:Notify', src, "Your group is already signed in!", "error") end
 
     if Config.DepositRequired then
         local deposit = {
@@ -155,17 +137,12 @@ RegisterNetEvent('brazzers-tow:server:signIn', function(coords)
             Player.Functions.RemoveMoney("bank", Config.DepositAmount)
         else
             TriggerClientEvent('QBCore:Notify', src, 'You need $'..Config.DepositAmount..' to be able to take a tow truck out!', 'error')
-            forceSignOut(src, _, false)
             return
         end
     end
 
     local vehicle, plate = spawnVehicle(Config.TowTruck, group, coords)
-    if not vehicle or not plate then 
-        TriggerClientEvent('QBCore:Notify', src, "Error try again!", "error")
-        forceSignOut(src, _, true)
-        return
-    end
+    if not vehicle or not plate then return TriggerClientEvent('QBCore:Notify', src, "Error try again!", "error") end
 
     Player.Functions.SetJob(Config.Job, Config.JobGrade)
 

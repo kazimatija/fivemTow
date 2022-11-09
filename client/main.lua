@@ -39,7 +39,6 @@ local function signIn()
     if signedIn then return end
 
     TriggerServerEvent('brazzers-tow:server:signIn', coords)
-    notification("JOB OFFER", "You have signed in!", 'primary')
 end
 
 local function signOut()
@@ -63,7 +62,7 @@ RegisterNetEvent('brazzers-tow:client:truckSpawned', function(NetID, plate)
         local vehicle = NetToVeh(NetID)
         exports[Config.Fuel]:SetFuel(vehicle, 100.0)
         TriggerServerEvent("qb-vehiclekeys:server:AcquireVehicleKeys", plate)
-        notification("CURRENT", "Vehicle prepared outside", _, 'primary')
+        notification("CURRENT", "You have signed in, vehicle outside", 'primary')
     end
     signedIn = true
 end)
