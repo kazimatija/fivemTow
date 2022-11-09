@@ -18,6 +18,8 @@ local CurrentTow = nil
 function notification(title, msg, action)
     if Config.NotificationStyle == 'phone' then
         TriggerEvent('qb-phone:client:CustomNotification', title, msg, 'fas fa-user', '#b3e0f2', 5000)
+    elseif Config.NotificationStyle == 'qbcore' then
+        QBCore.Functions.Notify(title..': '..msg, action, 5000)
     end
 end
 
@@ -37,14 +39,14 @@ local function signIn()
     if signedIn then return end
 
     TriggerServerEvent('brazzers-tow:server:signIn', coords)
-    notification("JOB OFFER", "You have signed in!", _)
+    notification("JOB OFFER", "You have signed in!", 'primary')
 end
 
 local function signOut()
     if not signedIn then return end
 
     signedIn = false
-    notification("CURRENT", "You have signed out!", _)
+    notification("CURRENT", "You have signed out!", _, 'primary')
     TriggerServerEvent('brazzers-tow:server:forceSignOut')
 end
 
@@ -52,7 +54,7 @@ local function forceSignOut()
     if not signedIn then return end
 
     signedIn = false
-    notification("CURRENT", "You have signed out!", _)
+    notification("CURRENT", "You have signed out!", _, 'primary')
 end
 
 RegisterNetEvent('brazzers-tow:client:truckSpawned', function(NetID, plate)
@@ -61,13 +63,42 @@ RegisterNetEvent('brazzers-tow:client:truckSpawned', function(NetID, plate)
         local vehicle = NetToVeh(NetID)
         exports[Config.Fuel]:SetFuel(vehicle, 100.0)
         TriggerServerEvent("qb-vehiclekeys:server:AcquireVehicleKeys", plate)
-        notification("CURRENT", "Vehicle prepared outside", _)
+        notification("CURRENT", "Vehicle prepared outside", _, 'primary')
     end
     signedIn = true
 end)
 
 RegisterNetEvent('brazzers-tow:client:forceSignOut', function()
     forceSignOut()
+end)
+
+RegisterNetEvent("brazzers-tow:client:requestTowTruck", function()
+    local vehicle = QBCore.Functions.GetClosestVehicle()
+    local plate = QBCore.Functions.GetPlate(vehicle)
+    local vehname = GetDisplayNameFromVehicleModel(GetEntityModel(veh)):lower()
+
+    QBCore.Functions.TriggerCallback("brazzers-tow:server:isTowAvailable", function(amount)
+        if amount == 0 then return QBCore.Functions.Notify('No tow trucks available', 'error', 5000) end
+        TriggerEvent('animations:client:EmoteCommandStart', {"phonecall"})
+        QBCore.Functions.Progressbar("calling-tow", "Calling Tow", 6500, false, false, {
+            disableMovement = true,
+            disableCarMovement = false,
+            disableMouse = false,
+            disableCombat = true,
+        }, {}, {}, {}, function()
+            TriggerEvent('animations:client:EmoteCommandStart', {"c"})
+            TriggerServerEvent("brazzers-tow:server:markForTow", vehname, plate)
+        end, function() -- Cancel
+            TriggerEvent('animations:client:EmoteCommandStart', {"c"})
+        end)
+    end)
+end)
+
+RegisterNetEvent("brazzers-tow:client:sendTowRequest", function(info, vehicle, plate, pos)
+    local success = exports[Config.Phone]:PhoneNotification("JOB OFFER", ' Incoming Tow Request', 'fas fa-map-pin', '#b3e0f2', "NONE", 'fas fa-check-circle', 'fas fa-times-circle')
+    if success then
+        TriggerServerEvent("brazzers-tow:server:sendTowRequest", info.Other, info.Player, vehicle, plate, pos)
+    end
 end)
 
 
