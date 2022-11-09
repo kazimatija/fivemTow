@@ -104,11 +104,10 @@ RegisterNetEvent('brazzers-tow:server:signIn', function(coords)
     if not Player then return end
 
     local group = Player.PlayerData.citizenid
-    local size = nil
 
     if Config.RenewedPhone then
         group = exports[Config.Phone]:GetGroupByMembers(src) or exports[Config.Phone]:CreateGroup(src, "Tow-"..Player.PlayerData.citizenid)
-        size = exports[Config.Phone]:getGroupSize(group)
+        local size = exports[Config.Phone]:getGroupSize(group)
 
         if size > Config.GroupLimit then
             TriggerClientEvent('QBCore:Notify', src, "Your group can only have "..Config.GroupLimit..' members in it', "error")
@@ -193,15 +192,4 @@ RegisterNetEvent("brazzers-tow:server:sendTowRequest", function(Other, Player, v
 end)
 
 -- Callbacks
-
-QBCore.Functions.CreateCallback('brazzers-tow:server:isTowAvailable', function(_, cb)
-    local amount = 0
-    local players = QBCore.Functions.GetQBPlayers()
-    for _, v in pairs(players) do
-        if v and v.PlayerData.job.name == "tow" and v.PlayerData.job.onduty then
-            amount = amount + 1
-        end
-    end
-    cb(amount)
-end)
 
