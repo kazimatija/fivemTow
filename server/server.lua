@@ -192,5 +192,15 @@ RegisterNetEvent("brazzers-tow:server:sendTowRequest", function(info, vehicle, p
     TriggerClientEvent('qb-phone:client:CustomNotification', info.Sender, "CURRENT", 'A driver accepted your tow request', 'fas fa-map-pin', '#b3e0f2', 7500)
 end)
 
+RegisterNetEvent('brazzers-tow:server:towVehicle', function(plate)
+    if not plate then return end
+    local src = source
+
+    if Config.MarkedVehicleOnly and not markedVehicles[plate] then return TriggerClientEvent('QBCore:Notify', src, "This vehicle is not marked for tow") end
+
+    -- further tow logic for hooking and shit, this is just a check to make sure the vehicle you're trying to tow is marked
+    -- preventing players from just picking up random vehicles and towing them for no reason etc.
+end)
+
 -- Callbacks
 

@@ -4,15 +4,6 @@ local signedIn = false
 local CachedNet = nil
 local blip = nil
 
-
-
-
-
-local PlayerJob = {}
-local onDuty = false
-local towtruck = 0
-local CurrentTow = nil
-
 -- Functions
 
 function notification(title, msg, action)
@@ -81,6 +72,12 @@ end)
 
 RegisterCommand('markfortow', function()
     TriggerEvent('brazzers-tow:client:requestTowTruck')
+end)
+
+RegisterCommand('checktow', function()
+    local vehicle = QBCore.Functions.GetClosestVehicle()
+    local plate = QBCore.Functions.GetPlate(vehicle)
+    TriggerServerEvent('brazzers-tow:server:towVehicle', plate)
 end)
 
 RegisterNetEvent("brazzers-tow:client:requestTowTruck", function()
