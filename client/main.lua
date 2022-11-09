@@ -51,7 +51,7 @@ local function forceSignOut()
     if not signedIn then return end
 
     signedIn = false
-    notification("CURRENT", "You have signed out!", _, 'primary')
+    notification("CURRENT", "You have signed out!", 'primary')
     RemoveBlip(blip)
 end
 
@@ -80,6 +80,12 @@ RegisterCommand('checktow', function()
     TriggerServerEvent('brazzers-tow:server:towVehicle', plate)
 end)
 
+RegisterCommand('depotvehicle', function()
+    local vehicle = QBCore.Functions.GetClosestVehicle()
+    local plate = QBCore.Functions.GetPlate(vehicle)
+    TriggerServerEvent('brazzers-tow:server:depotVehicle', plate, false, 'check')
+end)
+
 RegisterNetEvent("brazzers-tow:client:requestTowTruck", function()
     local vehicle = QBCore.Functions.GetClosestVehicle()
     local plate = QBCore.Functions.GetPlate(vehicle)
@@ -96,6 +102,23 @@ RegisterNetEvent("brazzers-tow:client:requestTowTruck", function()
         TriggerServerEvent("brazzers-tow:server:markForTow", vehname, plate)
     end, function() -- Cancel
         TriggerEvent('animations:client:EmoteCommandStart', {"c"})
+    end)
+end)
+
+RegisterNetEvent("brazzers-tow:client:depotVehicle", function()
+    local vehicle = QBCore.Functions.GetClosestVehicle()
+    local plate = QBCore.Functions.GetPlate(vehicle)
+    local class = GetVehicleClass(vehicle)
+    QBCore.Functions.Progressbar("depot_vehicle", "Sending Vehicle To Depot", 1500, false, true, {
+        disableMovement = true,
+        disableCarMovement = true,
+        disableMouse = false,
+        disableCombat = true,
+    }, {}, {}, {}, function()
+        QBCore.Functions.DeleteVehicle(vehicle)
+        TriggerServerEvent('brazzers-tow:server:depotVehicle', plate, class, 'depot')
+    end, function()
+        -- Cancel
     end)
 end)
 

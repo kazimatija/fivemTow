@@ -38,7 +38,9 @@ local function forceSignOut(source, group, resetAll)
     if resetAll then
         local members = exports[Config.Phone]:getGroupMembers(group)
         for i=1, #members do
-            TriggerClientEvent("brazzers-tow:client:forceSignOut", members[i])
+            if members[i] then
+                TriggerClientEvent("brazzers-tow:client:forceSignOut", members[i])
+            end
         end
     end
 
@@ -58,6 +60,7 @@ local function generatePlate()
 end
 
 local function spawnVehicle(source, carType, group, coords)
+    if not group then return end
     local src = source
     local CreateAutomobile = joaat('CREATE_AUTOMOBILE')
     local car = Citizen.InvokeNative(CreateAutomobile, joaat(carType), coords, true, false)
@@ -73,13 +76,23 @@ local function spawnVehicle(source, carType, group, coords)
 
     if Config.RenewedPhone then
         local members = exports[Config.Phone]:getGroupMembers(group)
+        if not members then return end
+
         for i=1, #members do
-            TriggerClientEvent("brazzers-tow:client:truckSpawned", members[i], NetID, plate)
+            if members[i] then
+                TriggerClientEvent("brazzers-tow:client:truckSpawned", members[i], NetID, plate)
+            end
         end
     else
         TriggerClientEvent("brazzers-tow:client:truckSpawned", src, NetID, plate)
     end
     return NetID, plate
+end
+
+local function isVehicleMarked(plate)
+    if markedVehicles[plate] then
+        return true
+    end
 end
 
 RegisterNetEvent('brazzers-tow:server:forceSignOut', function()
@@ -91,12 +104,18 @@ RegisterNetEvent('brazzers-tow:server:forceSignOut', function()
 
     if Config.RenewedPhone then
         group = exports[Config.Phone]:GetGroupByMembers(src)
+        if not group then return end
+
         local members = exports[Config.Phone]:getGroupMembers(group)
+        if not members then return end
+
         if Config.OnlyLeader and not exports[Config.Phone]:isGroupLeader(src, group) then return TriggerClientEvent('QBCore:Notify', src, "You must be the group leader to sign out", "error") end
 
         for i=1, #members do
-            forceSignOut(members[i], group, true)
-            return
+            if members[i] then
+                forceSignOut(members[i], group, true)
+                return
+            end
         end
     end
 
@@ -161,7 +180,7 @@ RegisterNetEvent('brazzers-tow:server:markForTow', function(vehicle, plate)
 
     markedVehicles[plate] = true
 
-    for k, v in pairs(QBCore.Functions.GetPlayers()) do
+    for _, v in pairs(QBCore.Functions.GetPlayers()) do
         local Employees = QBCore.Functions.GetPlayer(v)
         if Employees then
             if Employees.PlayerData.job.name == 'tow' and Employees.PlayerData.job.onduty then
@@ -184,8 +203,12 @@ RegisterNetEvent("brazzers-tow:server:sendTowRequest", function(info, vehicle, p
     if not group then return end
 
     local members = exports[Config.Phone]:getGroupMembers(group)
+    if not members then return end
+
     for i=1, #members do
-        TriggerClientEvent('brazzers-tow:client:receiveTowRequest', members[i], pos, vehicle, plate) -- SEND BLIP
+        if members[i] then
+            TriggerClientEvent('brazzers-tow:client:receiveTowRequest', members[i], pos, vehicle, plate) -- SEND BLIP
+        end
     end
    
     if not Config.RenewedPhone then return TriggerClientEvent('QBCore:Notify', info.Sender, "A driver accepted your tow request") end
@@ -196,10 +219,45 @@ RegisterNetEvent('brazzers-tow:server:towVehicle', function(plate)
     if not plate then return end
     local src = source
 
-    if Config.MarkedVehicleOnly and not markedVehicles[plate] then return TriggerClientEvent('QBCore:Notify', src, "This vehicle is not marked for tow") end
+    if Config.MarkedVehicleOnly and not isVehicleMarked(plate) then return TriggerClientEvent('QBCore:Notify', src, "This vehicle is not marked for tow") end
 
     -- further tow logic for hooking and shit, this is just a check to make sure the vehicle you're trying to tow is marked
     -- preventing players from just picking up random vehicles and towing them for no reason etc.
+end)
+
+RegisterNetEvent('brazzers-tow:server:depotVehicle', function(plate, class, action)
+    if not plate or not action then return end
+    local src = source
+    local Player = QBCore.Functions.GetPlayer(src)
+    if not Player then return end
+
+    if Config.MarkedVehicleOnly and not isVehicleMarked(plate) then return TriggerClientEvent('QBCore:Notify', src, "This vehicle is not marked for tow") end
+
+    if action == 'check' then
+        TriggerClientEvent('brazzers-tow:client:depotVehicle', src)
+    elseif action == 'depot' then
+        local payout = Config.Payout[class]['payout']
+
+        if not Config.RenewedPhone then
+            Player.Functions.AddMoney('cash', payout)
+            TriggerClientEvent('QBCore:Notify', src, 'You received $'..payout)
+            return
+        end
+
+        local group = exports[Config.Phone]:GetGroupByMembers(src)
+        if not group then return end
+
+        local members = exports[Config.Phone]:getGroupMembers(group)
+        if not members then return end
+
+        for i=1, #members do
+            if members[i] then
+                local groupMembers = QBCore.Functions.GetPlayer(members[i])
+                groupMembers.Functions.AddMoney('cash', payout)
+                TriggerClientEvent('QBCore:Notify', members[i], 'You received $'..payout)
+            end
+        end
+    end
 end)
 
 -- Callbacks
