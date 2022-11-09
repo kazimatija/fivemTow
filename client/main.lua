@@ -92,7 +92,7 @@ RegisterNetEvent("brazzers-tow:client:requestTowTruck", function()
 end)
 
 RegisterNetEvent("brazzers-tow:client:sendTowRequest", function(info, vehicle, plate, pos)
-    local success = exports[Config.Phone]:PhoneNotification("JOB OFFER", ' Incoming Tow Request', 'fas fa-map-pin', '#b3e0f2', "NONE", 'fas fa-check-circle', 'fas fa-times-circle')
+    local success = exports[Config.Phone]:PhoneNotification("JOB OFFER", 'Incoming Tow Request', 'fas fa-map-pin', '#b3e0f2', "NONE", 'fas fa-check-circle', 'fas fa-times-circle')
     if success then
         TriggerServerEvent("brazzers-tow:server:sendTowRequest", info.Other, info.Player, vehicle, plate, pos)
     end

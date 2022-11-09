@@ -17,15 +17,24 @@ end
 
 local function forceSignOut(source, group, resetAll)
     local src = source
-    if not src then return end
+    local Player = QBCore.Functions.GetPlayer(src)
+    if not Player then return end
 
     if group then
-        DeleteEntity(NetworkGetEntityFromNetworkId(cachedTow[group].towtruck))
+        if DoesEntityExist(NetworkGetEntityFromNetworkId(cachedTow[group].towtruck)) then
+            DeleteEntity(NetworkGetEntityFromNetworkId(cachedTow[group].towtruck))
+            if Config.DepositRequired then
+                Player.Functions.AddMoney('bank', Config.DepositAmount)
+                TriggerClientEvent('QBCore:Notify', src, "You have received your deposit back")
+            end
+        else
+            TriggerClientEvent('QBCore:Notify', src, "You did not receive your deposit back", 'error')
+        end
         usedPlates[cachedTow[group].plate] = nil
         cachedTow[group] = nil
     end
 
-    if not Config.RenewedPhone then return TriggerClientEvent("", src) end
+    if not Config.RenewedPhone then return TriggerClientEvent("brazzers-tow:client:forceSignOut", src) end
 
     if resetAll then
         local members = exports[Config.Phone]:getGroupMembers(group)
@@ -85,8 +94,8 @@ RegisterNetEvent('brazzers-tow:server:forceSignOut', function()
         group = exports[Config.Phone]:GetGroupByMembers(src)
         local members = exports[Config.Phone]:getGroupMembers(group)
         for i=1, #members do
-            return
             forceSignOut(members[i], group, true)
+            return
         end
     end
 
