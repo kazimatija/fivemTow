@@ -2,6 +2,18 @@ local QBCore = exports[Config.Core]:GetCoreObject()
 
 local cachedTow = {}
 local usedPlates = {}
+local markedVehicles = {}
+
+function notifyGroup(src, type, msg, group)
+    if not group then return TriggerClientEvent('QBCore:Notify', src, msg, type) end
+    exports[Config.Phone]:pNotifyGroup(group,
+        "CURRENT",
+        msg,
+        "fas fa-user",
+        "#2193eb",
+        7500
+    )
+end
 
 local function forceSignOut(source, group, resetAll)
     local src = source
@@ -147,15 +159,49 @@ RegisterNetEvent('brazzers-tow:server:signIn', function(coords)
         return
     end
 
+    Player.Functions.SetJob(Config.Job, Config.JobGrade)
+
     cachedTow[group] = {
         towtruck = vehicle,
         plate = plate,
-        data = {
-            car = nil,
-            carPlate = nil,
-            carLocation = nil,
-            carHooked = nil,
-        },
     }
+end)
+
+RegisterNetEvent('brazzers-tow:server:markForTow', function(vehicle, plate)
+    if not plate then return end
+    local src = source
+    local Player QBCore.Functions.GetPlayer(src)
+    local coords = GetEntityCoords(GetPlayerPed(src))
+
+    if not Player then return end
+
+    markedVehicles[plate] = true
+    for k, v in pairs(QBCore.Functions.GetPlayers()) do
+        local Employees = QBCore.Functions.GetPlayer(v)
+        if Employees then
+            if Employees.PlayerData.job.name == 'tow' and Employees.PlayerData.job.onduty then
+                local info = {Other = Employees, Player = src}
+                TriggerClientEvent('brazzers-tow:client:sendTowRequest', Employees.PlayerData.source, info, vehicle, plate, coords)
+            end
+        end
+    end
+end)
+
+RegisterNetEvent("brazzers-tow:server:sendTowRequest", function(Other, Player, vehicle, plate, pos)
+    TriggerClientEvent('qb-phone:client:CustomNotification', Player, "CURRENT", 'A Driver Accepted Your Tow Request', 'fas fa-map-pin', '#b3e0f2', 7500)
+    TriggerClientEvent("5life-tow:client:sendingTowRequest", Other.PlayerData.source, pos, vehicle, plate)
+end)
+
+-- Callbacks
+
+QBCore.Functions.CreateCallback('brazzers-tow:server:isTowAvailable', function(_, cb)
+    local amount = 0
+    local players = QBCore.Functions.GetQBPlayers()
+    for _, v in pairs(players) do
+        if v and v.PlayerData.job.name == "tow" and v.PlayerData.job.onduty then
+            amount = amount + 1
+        end
+    end
+    cb(amount)
 end)
 
