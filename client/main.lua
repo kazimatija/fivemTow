@@ -43,9 +43,6 @@ end
 
 local function signOut()
     if not signedIn then return end
-
-    signedIn = false
-    notification("CURRENT", "You have signed out!", _, 'primary')
     TriggerServerEvent('brazzers-tow:server:forceSignOut')
 end
 

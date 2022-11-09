@@ -37,7 +37,6 @@ local function forceSignOut(source, group, resetAll)
 
     if resetAll then
         local members = exports[Config.Phone]:getGroupMembers(group)
-        
         for i=1, #members do
             TriggerClientEvent("brazzers-tow:client:forceSignOut", members[i])
         end
@@ -92,6 +91,8 @@ RegisterNetEvent('brazzers-tow:server:forceSignOut', function()
     if Config.RenewedPhone then
         group = exports[Config.Phone]:GetGroupByMembers(src)
         local members = exports[Config.Phone]:getGroupMembers(group)
+        if Config.OnlyLeader and not exports[Config.Phone]:isGroupLeader(src, group) then return TriggerClientEvent('QBCore:Notify', src, "You must be the group leader to sign out", "error") end
+
         for i=1, #members do
             forceSignOut(members[i], group, true)
             return
