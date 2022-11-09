@@ -8,6 +8,9 @@ Config.RenewedPhone = true -- If you use Renewed's Phone then leave this to true
 Config.Phone = 'qb-phone' -- If using Renewed's Phone then put your resource name here
 Config.NotificationStyle = 'phone'
 
+Config.Job = 'tow'
+Config.JobGrade = 0
+
 Config.LaptopCoords = vector3(471.58, -1310.89, 28.94)
 Config.GroupLimit = 2
 
