@@ -102,12 +102,13 @@ end
 
 RegisterNetEvent('brazzers-tow:server:syncHook', function(index, NetID, hookedVeh)
     local car = NetworkGetEntityFromNetworkId(NetID)
+    local hookedCar = NetworkGetEntityFromNetworkId(hookedVeh)
     local state = Entity(car).state.FlatBed
     if not state then return end
 
     local newState = {
         carAttached = index,
-        carNetId = hookedVeh,
+        carNetId = hookedCar,
     }
 
     Entity(car).state:set('FlatBed', newState, true)
