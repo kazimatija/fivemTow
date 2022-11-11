@@ -24,12 +24,26 @@ local function CreateBlip(coords)
     EndTextCommandSetBlipName(blip)
 end
 
+local function isTowVehicle(vehicle)
+    local retval = false
+    if GetEntityModel(vehicle) == GetHashKey("flatbed") then
+        retval = true
+    end
+    return retval
+end
+
 local function getSpawn()
     for _, v in pairs(Config.VehicleSpawns) do
         if not IsAnyVehicleNearPoint(v.x, v.y, v.z, 4) then
             return v
         end
     end
+end
+
+local function getVehicleInDirection(coordFrom, coordTo)
+	local rayHandle = CastRayPointToPoint(coordFrom.x, coordFrom.y, coordFrom.z, coordTo.x, coordTo.y, coordTo.z, 10, PlayerPedId(), 0)
+	local _, _, _, _, vehicle = GetRaycastResult(rayHandle)
+	return vehicle
 end
 
 local function signIn()
@@ -78,6 +92,10 @@ RegisterCommand('checktow', function()
     local vehicle = QBCore.Functions.GetClosestVehicle()
     local plate = QBCore.Functions.GetPlate(vehicle)
     TriggerServerEvent('brazzers-tow:server:towVehicle', plate)
+end)
+
+RegisterCommand('hookvehicle', function()
+    TriggerEvent('brazzers-tow:client:hookVehicle')
 end)
 
 RegisterCommand('depotvehicle', function()
@@ -134,6 +152,77 @@ RegisterNetEvent('brazzers-tow:client:receiveTowRequest', function(pos, vehicle,
     TriggerEvent('qb-phone:client:CustomNotification', 'CURRENT', "Location has been marked for the vehicle!", 'fas fa-map-pin', '#b3e0f2', 2000)
     Wait(5000)
     TriggerEvent('qb-phone:client:CustomNotification', 'CURRENT', "Vehicle: "..vehicle.." | Plate: "..plate, 'fas fa-map-pin', '#b3e0f2', 120000)
+end)
+
+RegisterNetEvent('brazzers-tow:client:hookVehicle', function()
+    local vehicle = GetVehiclePedIsIn(PlayerPedId(), true)
+    local flatbed = NetworkGetEntityFromNetworkId(CachedNet)
+    if vehicle ~= flatbed then return end
+
+    local state = Entity(vehicle).state.FlatBed
+    if not state then return end
+
+    local playerped = PlayerPedId()
+    local coordA = GetEntityCoords(playerped, 1)
+    local coordB = GetOffsetFromEntityInWorldCoords(playerped, 0.0, 5.0, 0.0)
+    local targetVehicle = getVehicleInDirection(coordA, coordB)
+
+    if not isTowVehicle(vehicle) then return print('ENTER THE TOW VEHICLE AGAIN') end
+
+    if not state.carAttached then
+        if not IsPedInAnyVehicle(PlayerPedId()) then
+            NetworkRequestControlOfEntity(targetVehicle)
+            if vehicle ~= targetVehicle then
+                local towPos = GetEntityCoords(vehicle)
+                local targetPos = GetEntityCoords(targetVehicle)
+                if #(towPos - targetPos) < 11.0 then
+                    QBCore.Functions.Progressbar("towing_vehicle", "Towing Vehicle", 5000, false, true, {
+                        disableMovement = true,
+                        disableCarMovement = true,
+                        disableMouse = false,
+                        disableCombat = true,
+                    }, {
+                        animDict = "mini@repair",
+                        anim = "fixing_a_ped",
+                        flags = 16,
+                    }, {}, {}, function() -- Done
+                        StopAnimTask(PlayerPedId(), "mini@repair", "fixing_a_ped", 1.0)
+                        AttachEntityToEntity(targetVehicle, flatbed, GetEntityBoneIndexByName(flatbed, 'bodyshell'), 0.0, -1.5 + -0.85, 0.0 + 1.15, 0, 0, 0, 1, 1, 0, 1, 0, 1)
+                        FreezeEntityPosition(targetVehicle, true)
+                        print("ATTACH VEHICLE")
+                        print(targetVehicle)
+                        TriggerServerEvent('brazzers-tow:server:syncHook', true, CachedNet, targetVehicle)
+                    end, function() -- Cancel
+                        StopAnimTask(PlayerPedId(), "mini@repair", "fixing_a_ped", 1.0)
+                        QBCore.Functions.Notify("Canceled", "error")
+                    end)
+                end
+            end
+        end
+    else
+        QBCore.Functions.Progressbar("untowing_vehicle", "Removing Vehicle", 5000, false, true, {
+            disableMovement = true,
+            disableCarMovement = true,
+            disableMouse = false,
+            disableCombat = true,
+        }, {
+            animDict = "mini@repair",
+            anim = "fixing_a_ped",
+            flags = 16,
+        }, {}, {}, function() -- Done
+            StopAnimTask(PlayerPedId(), "mini@repair", "fixing_a_ped", 1.0)
+            FreezeEntityPosition(state.carNetId, false)
+            Wait(250)
+            AttachEntityToEntity(state.carNetId, flatbed, 20, -0.0, -15.0, 1.0, 0.0, 0.0, 0.0, false, false, false, false, 20, true)
+            DetachEntity(state.carNetId, true, true)
+            print("DEATTACH VEHICLE")
+            print(state.carNetId)
+            TriggerServerEvent('brazzers-tow:server:syncHook', false, CachedNet, nil)
+        end, function() -- Cancel
+            StopAnimTask(PlayerPedId(), "mini@repair", "fixing_a_ped", 1.0)
+            QBCore.Functions.Notify("Canceled", "error")
+        end)
+    end
 end)
 
 AddEventHandler('onResourceStop', function(resource)

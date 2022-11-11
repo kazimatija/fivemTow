@@ -74,6 +74,11 @@ local function spawnVehicle(source, carType, group, coords)
 
     SetVehicleNumberPlateText(car, plate)
 
+    Entity(car).state.FlatBed = {
+        carAttached = false,
+        carNetId = nil,
+    }
+
     if Config.RenewedPhone then
         local members = exports[Config.Phone]:getGroupMembers(group)
         if not members then return end
@@ -94,6 +99,19 @@ local function isVehicleMarked(plate)
         return true
     end
 end
+
+RegisterNetEvent('brazzers-tow:server:syncHook', function(index, NetID, hookedVeh)
+    local car = NetworkGetEntityFromNetworkId(NetID)
+    local state = Entity(car).state.FlatBed
+    if not state then return end
+
+    local newState = {
+        carAttached = index,
+        carNetId = hookedVeh,
+    }
+
+    Entity(car).state:set('FlatBed', newState, true)
+end)
 
 RegisterNetEvent('brazzers-tow:server:forceSignOut', function()
     local src = source
