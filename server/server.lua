@@ -76,7 +76,6 @@ local function spawnVehicle(source, carType, group, coords)
 
     Entity(car).state.FlatBed = {
         carAttached = false,
-        carNetId = nil,
     }
 
     if Config.RenewedPhone then
@@ -102,16 +101,26 @@ end
 
 RegisterNetEvent('brazzers-tow:server:syncHook', function(index, NetID, hookedVeh)
     local car = NetworkGetEntityFromNetworkId(NetID)
-    local hookedCar = NetworkGetEntityFromNetworkId(hookedVeh)
     local state = Entity(car).state.FlatBed
     if not state then return end
 
     local newState = {
         carAttached = index,
-        carNetId = hookedCar,
     }
 
     Entity(car).state:set('FlatBed', newState, true)
+end)
+
+RegisterNetEvent('brazzers-tow:server:syncActions', function(playerId, flatbed, target)
+    local src = source
+    if not src then return end
+
+    if playerId then
+        TriggerClientEvent('brazzers-tow:client:syncActions', playerId, flatbed, target, true)
+        return
+    end
+
+    TriggerClientEvent('brazzers-tow:client:syncActions', -1, flatbed, target, false)
 end)
 
 RegisterNetEvent('brazzers-tow:server:forceSignOut', function()
