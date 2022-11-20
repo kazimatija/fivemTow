@@ -50,3 +50,9 @@ Config.Payout = {
     [19] = { ['payout'] = 100 }, -- Military
     [20] = { ['payout'] = 100 }, -- Commercial
 }
+
+Config.BlacklistedModels = {
+}
+
+Config.BlacklistedClasses = {
+}
