@@ -28,6 +28,13 @@ function CreateBlip(coords)
     EndTextCommandSetBlipName(blip)
 end
 
+local function isTow()
+    local PlayerData = QBCore.Functions.GetPlayerData()
+    if (PlayerData.job.name == 'tow') and PlayerData.job.onduty then
+        return true
+    end
+end
+
 local function RayCast(origin, target, options, ignoreEntity, radius)
     local handle = StartShapeTestSweptSphere(origin.x, origin.y, origin.z, target.x, target.y, target.z, radius, options, ignoreEntity, 0)
     return GetShapeTestResult(handle)
@@ -163,8 +170,8 @@ RegisterNetEvent('brazzers-tow:client:truckSpawned', function(NetID, plate)
     signedIn = true
 end)
 
-RegisterNetEvent('brazzers-tow:client:hookVehicle', function()
-    local flatbed = NetworkGetEntityFromNetworkId(CachedNet)
+local function hookVehicle(NetworkID)
+    local flatbed = NetworkGetEntityFromNetworkId(NetworkID)
     if not flatbed then return notification(_, 'Tow truck doesn\'t exist', 'error') end
 
     local target = GetEntityBehindTowTruck(flatbed, -8, 0.7)
@@ -172,7 +179,7 @@ RegisterNetEvent('brazzers-tow:client:hookVehicle', function()
 
     local targetModel = GetEntityModel(target)
     local targetClass = GetVehicleClass(target)
-    local towTruckDriver = GetPedInVehicleSeat(NetworkGetEntityFromNetworkId(CachedNet), -1)
+    local towTruckDriver = GetPedInVehicleSeat(flatbed, -1)
 
     if (Config.BlacklistedModels[targetModel] or Config.BlacklistedClasses[targetClass]) then
         return notification(_, 'You cannot tow this type of vehicle', 'error')
@@ -210,19 +217,10 @@ RegisterNetEvent('brazzers-tow:client:hookVehicle', function()
                 disableCombat = true,
             }, {}, {}, {}, function()
                 local playerId = GetPlayerServerId(NetworkGetPlayerIndexFromPed(towTruckDriver))
-                
-                if playerId and playerId ~= 0 then
-                    local targetNetId = NetworkGetNetworkIdFromEntity(target)
-                    SetNetworkIdCanMigrate(targetNetId, true)
-                    SetNetworkIdExistsOnAllMachines(targetNetId, true)
-                    NetworkRegisterEntityAsNetworked(VehToNet(targetNetId))
+                if playerId and playerId ~= 0 then return notification(_, 'There cannot be a driver inside the tow truck', 'error') end
 
-                    TriggerServerEvent('brazzers-tow:server:syncActions', playerId, flatbed, targetNetId)
-                else
-                    attachVehicleToBed(flatbed, target)
-                end
-
-                TriggerServerEvent('brazzers-tow:server:syncHook', true, CachedNet, NetworkGetNetworkIdFromEntity(target))
+                attachVehicleToBed(flatbed, target)
+                TriggerServerEvent('brazzers-tow:server:syncHook', true, NetworkGetNetworkIdFromEntity(flatbed), NetworkGetNetworkIdFromEntity(target))
             end, function()
                 notification(_, 'Canceled', 'error')
             end)
@@ -230,10 +228,10 @@ RegisterNetEvent('brazzers-tow:client:hookVehicle', function()
             notification(_, 'Canceled', 'error')
         end)
     end
-end)
+end
 
-RegisterNetEvent('brazzers-tow:client:unHookVehicle', function()
-    local flatbed = NetworkGetEntityFromNetworkId(CachedNet)
+local function unHookVehicle(NetworkID)
+    local flatbed = NetworkGetEntityFromNetworkId(NetworkID)
     if not flatbed then return notification(_, 'Tow truck doesn\'t exist', 'error') end
 
     local target = FindVehicleAttachedToVehicle(flatbed)
@@ -261,45 +259,29 @@ RegisterNetEvent('brazzers-tow:client:unHookVehicle', function()
             disableCombat = true,
         }, {}, {}, {}, function()
             if not IsEntityAttachedToEntity(target, flatbed) then return notification(_, 'No vehicle attached', 'error') end
-
-            local targetNetId = NetworkGetNetworkIdFromEntity(target)
-            SetNetworkIdCanMigrate(targetNetId, true)
-            SetNetworkIdExistsOnAllMachines(targetNetId, true)
-            NetworkRegisterEntityAsNetworked(VehToNet(targetNetId))
-
-            TriggerServerEvent('brazzers-tow:server:syncActions', nil, flatbed, targetNetId)
-            TriggerServerEvent('brazzers-tow:server:syncHook', false, CachedNet, nil)
+            TriggerServerEvent('brazzers-tow:server:syncDetach', NetworkGetNetworkIdFromEntity(flatbed))
         end, function()
             notification(_, 'Canceled', 'error')
         end)
     end, function()
         notification(_, 'Canceled', 'error')
     end)
-end)
+end
 
-RegisterNetEvent('brazzers-tow:client:syncActions', function(towTruck, target, syncAttach)
-    local flatbed = towTruck
-    local vehicle = NetworkGetEntityFromNetworkId(target)
+RegisterNetEvent('brazzers-tow:client:syncDetach', function(flatbed)
+    local cFlatbed = NetworkGetEntityFromNetworkId(flatbed)
+    local state = Entity(cFlatbed).state.FlatBed
+    if not state then return end
 
-    if syncAttach then -- This syncs attaching if a player is inside the tow trucks driver seat
-        if DoesEntityExist(vehicle) then
-            attachVehicleToBed(flatbed, vehicle)
-            return
-        end
-    end
+    local attachedVehicle = NetworkGetEntityFromNetworkId(state.carEntity)
+    local drop = GetOffsetFromEntityInWorldCoords(attachedVehicle, 0.0,-5.5,0.0)
 
-    if DoesEntityExist(vehicle) then
-        print("SYNCING")
-        local drop = GetOffsetFromEntityInWorldCoords(vehicle, 0.0,-5.5,0.0)
-
-        if IsEntityAttachedToEntity(vehicle, flatbed) then
-            DetachEntity(vehicle, true, true)
-            Wait(100)
-            SetEntityCoords(vehicle, drop)
-            Wait(100)
-            SetVehicleOnGroundProperly(vehicle)
-        end
-    end
+    DetachEntity(attachedVehicle, true, true)
+    Wait(100)
+    SetEntityCoords(attachedVehicle, drop)
+    Wait(100)
+    SetVehicleOnGroundProperly(attachedVehicle)
+    TriggerServerEvent('brazzers-tow:server:syncHook', false, NetworkGetNetworkIdFromEntity(cFlatbed), nil)
 end)
 
 AddEventHandler('onResourceStop', function(resource)

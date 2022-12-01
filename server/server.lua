@@ -76,6 +76,7 @@ local function spawnVehicle(source, carType, group, coords)
 
     Entity(car).state.FlatBed = {
         carAttached = false,
+        carEntity = nil,
     }
 
     if Config.RenewedPhone then
@@ -106,21 +107,10 @@ RegisterNetEvent('brazzers-tow:server:syncHook', function(index, NetID, hookedVe
 
     local newState = {
         carAttached = index,
+        carEntity = hookedVeh,
     }
 
     Entity(car).state:set('FlatBed', newState, true)
-end)
-
-RegisterNetEvent('brazzers-tow:server:syncActions', function(playerId, flatbed, target)
-    local src = source
-    if not src then return end
-
-    if playerId then
-        TriggerClientEvent('brazzers-tow:client:syncActions', playerId, flatbed, target, true)
-        return
-    end
-
-    TriggerClientEvent('brazzers-tow:client:syncActions', -1, flatbed, target, false)
 end)
 
 RegisterNetEvent('brazzers-tow:server:forceSignOut', function()
@@ -249,8 +239,11 @@ RegisterNetEvent('brazzers-tow:server:towVehicle', function(plate)
 
     if Config.MarkedVehicleOnly and not isVehicleMarked(plate) then return TriggerClientEvent('QBCore:Notify', src, "This vehicle is not marked for tow") end
 
-    -- further tow logic for hooking and shit, this is just a check to make sure the vehicle you're trying to tow is marked
-    -- preventing players from just picking up random vehicles and towing them for no reason etc.
+    TriggerClientEvent('QBCore:Notify', src, "This vehicle is marked for tow")
+end)
+
+RegisterNetEvent('brazzers-tow:server:syncDetach', function(flatbed)
+    TriggerClientEvent('brazzers-tow:client:syncDetach', -1, flatbed)
 end)
 
 RegisterNetEvent('brazzers-tow:server:depotVehicle', function(plate, class, action)
