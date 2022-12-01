@@ -137,6 +137,21 @@ local function forceSignOut()
     RemoveBlip(blip)
 end
 
+local function depotVehicle(NetworkID)
+    local entity = NetworkGetEntityFromNetworkId(NetworkID)
+    local plate = QBCore.Functions.GetPlate(entity)
+    local class = GetVehicleClass(entity)
+    QBCore.Functions.Progressbar("depot_vehicle", "Sending Vehicle To Depot", 1500, false, true, {
+        disableMovement = true,
+        disableCarMovement = true,
+        disableMouse = false,
+        disableCombat = true,
+    }, {}, {}, {}, function()
+        TriggerServerEvent('brazzers-tow:server:depotVehicle', plate, class, NetworkID)
+    end, function()
+    end)
+end
+
 RegisterNetEvent('brazzers-tow:client:truckSpawned', function(NetID, plate)
     if NetID and plate then
         CachedNet = NetID
@@ -287,47 +302,73 @@ RegisterNetEvent('brazzers-tow:client:syncActions', function(towTruck, target, s
     end
 end)
 
-RegisterCommand('starttow', function()
-    TriggerServerEvent('brazzers-tow:server:signIn', true)
-end)
-
-RegisterCommand('markfortow', function()
-    TriggerEvent('brazzers-tow:client:requestTowTruck')
-end)
-
-RegisterCommand('checktow', function()
-    local vehicle = QBCore.Functions.GetClosestVehicle()
-    local plate = QBCore.Functions.GetPlate(vehicle)
-    TriggerServerEvent('brazzers-tow:server:towVehicle', plate)
-end)
-
-RegisterCommand('hookvehicle', function()
-    TriggerEvent('brazzers-tow:client:hookVehicle')
-end)
-
-RegisterCommand('hookvehicle2', function()
-    TriggerEvent('brazzers-tow:client:unHookVehicle')
-end)
-
-RegisterCommand('depotvehicle', function()
-    local vehicle = QBCore.Functions.GetClosestVehicle()
-    local plate = QBCore.Functions.GetPlate(vehicle)
-    TriggerServerEvent('brazzers-tow:server:depotVehicle', plate, false, 'check')
-end)
-
 AddEventHandler('onResourceStop', function(resource)
     if resource == GetCurrentResourceName() then
         RemoveBlip(blip)
     end
  end)
 
-
-
-
-
-
-
 -- Threads
+
+CreateThread(function()
+    exports['rush-eye']:AddGlobalVehicle({
+        options = {
+            {
+                label = "Hook Vehicle",
+                icon = "fas fa-car-rear",
+                action = function(entity)
+                    hookVehicle(NetworkGetNetworkIdFromEntity(entity))
+                end,
+                canInteract = function(entity)
+                    if not isTowVehicle(entity) then return end
+                    if not isTow() then return end
+
+                    local target = GetEntityBehindTowTruck(entity, -8, 0.7)
+                    if not target or target == 0 then return end
+
+                    local state = Entity(entity).state.FlatBed
+                    if not state then return end
+                    if state.carAttached then return end
+
+                    return true
+                end
+            },
+            {
+                label = "Unhook Vehicle",
+                icon = "fas fa-car-rear",
+                action = function(entity)
+                    unHookVehicle(NetworkGetNetworkIdFromEntity(entity))
+                end,
+                canInteract = function(entity)
+                    if not isTowVehicle(entity) then return end
+                    if not isTow() then return end
+
+                    local state = Entity(entity).state.FlatBed
+                    if not state then return end
+                    if not state.carAttached then return end
+
+                    return true
+                end
+            },
+        },
+        distance = 1.5
+    })
+    exports['rush-eye']:AddGlobalVehicle({
+        options = {
+            {
+                label = "Depot Vehicle",
+                icon = "fas fa-car-rear",
+                action = function(entity)
+                    depotVehicle(NetworkGetNetworkIdFromEntity(entity))
+                end,
+                canInteract = function(entity)
+                    return isTow() and inZone()
+                end
+            }
+        },
+        distance = 1.5
+    })
+end)
 
 CreateThread(function()
     exports[Config.Target]:AddBoxZone("tow_signin", Config.LaptopCoords, 0.2, 0.4, {
