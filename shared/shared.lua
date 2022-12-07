@@ -14,10 +14,14 @@ Config.Phone = 'qb-phone' -- If using Renewed's Phone then put your resource nam
 Config.OnlyLeader = true -- Allow only the leader of the group to sign into the tow job [RECOMMENDED: TRUE]
 Config.GroupLimit = 2 -- Amount of people allowed in a group to start a tow run
 
+Config.WhitelistedJob = false -- If you wanna restrict sign in feature to only existing tow job people, set this to true. You will have to manually add the job below to the person then
 Config.Job = 'tow' -- tow job name from QBCore.Shared.Jobs
 Config.JobGrade = 0 -- grade level to assign the player when signing in
 Config.DepositRequired = true -- If a deposit is required to take out a vehicle
 Config.DepositAmount = 100 -- If above is true, then set the amount here
+
+Config.DepotLot = vector3(-142.59, -1173.80, 23.76) -- Location
+Config.AllowTowOnly = false -- set this to true if you want to only allow the tow job to use hook/ unhook vehicle on the tow truck
 
 Config.LaptopCoords = vector3(471.58, -1310.89, 28.94) -- Location to sign in
 Config.VehicleSpawns = { -- Vehicle spawns for the tow truck

@@ -6,33 +6,37 @@ local blip = nil
 
 -- Functions
 
-function notification(title, msg, action)
-    if Config.NotificationStyle == 'phone' then
-        TriggerEvent('qb-phone:client:CustomNotification', title, msg, 'fas fa-user', '#b3e0f2', 5000)
-    elseif Config.NotificationStyle == 'qbcore' then
-        if title then
-            QBCore.Functions.Notify(title..': '..msg, action, 5000)
-        else
-            QBCore.Functions.Notify(msg, action, 5000)
-        end
-    end
-end
-
-function CreateBlip(coords)
-    blip = AddBlipForCoord(coords.x, coords.y, coords.z)
-    SetBlipScale(blip, 0.7)
-	SetBlipColour(blip, 3)
-	SetBlipRoute(blip, true)
-    BeginTextCommandSetBlipName("STRING")
-    AddTextComponentSubstringPlayerName('Tow Call')
-    EndTextCommandSetBlipName(blip)
-end
-
-local function isTow()
+function isTow()
     local PlayerData = QBCore.Functions.GetPlayerData()
-    if (PlayerData.job.name == 'tow') and PlayerData.job.onduty then
+    if (PlayerData.job.name == Config.Job) and PlayerData.job.onduty then
         return true
     end
+end
+
+function inZone()
+    local ped = PlayerPedId()
+    local pedPos = GetEntityCoords(ped)
+
+    local depotLot = Config.DepotLot
+
+    if (#(pedPos - depotLot) <= 20.0) then
+        return true
+    end
+end
+
+function signIn()
+    local coords = getSpawn()
+    if not coords then return QBCore.Functions.Notify("There's a vehicle in the way", 'error', 5000) end
+
+    if Config.RenewedPhone and not exports[Config.Phone]:hasPhone() then return QBCore.Functions.Notify("You don\'t have a phone", 'error', 5000) end
+    if signedIn then return end
+
+    TriggerServerEvent('brazzers-tow:server:signIn', coords)
+end
+
+function signOut()
+    if not signedIn then return end
+    TriggerServerEvent('brazzers-tow:server:forceSignOut')
 end
 
 local function RayCast(origin, target, options, ignoreEntity, radius)
@@ -107,7 +111,7 @@ end
 
 local function isTowVehicle(vehicle)
     local retval = false
-    if GetEntityModel(vehicle) == GetHashKey("flatbed") then
+    if GetEntityModel(vehicle) == GetHashKey(Config.TowTruck) then
         retval = true
     end
     return retval
@@ -121,21 +125,6 @@ local function getSpawn()
     end
 end
 
-local function signIn()
-    local coords = getSpawn()
-    if not coords then return QBCore.Functions.Notify("There's a vehicle in the way", 'error', 5000) end
-
-    if Config.RenewedPhone and not exports[Config.Phone]:hasPhone() then return QBCore.Functions.Notify("You don\'t have a phone", 'error', 5000) end
-    if signedIn then return end
-
-    TriggerServerEvent('brazzers-tow:server:signIn', coords)
-end
-
-local function signOut()
-    if not signedIn then return end
-    TriggerServerEvent('brazzers-tow:server:forceSignOut')
-end
-
 local function forceSignOut()
     if not signedIn then return end
 
@@ -143,32 +132,6 @@ local function forceSignOut()
     notification("CURRENT", "You have signed out!", 'primary')
     RemoveBlip(blip)
 end
-
-local function depotVehicle(NetworkID)
-    local entity = NetworkGetEntityFromNetworkId(NetworkID)
-    local plate = QBCore.Functions.GetPlate(entity)
-    local class = GetVehicleClass(entity)
-    QBCore.Functions.Progressbar("depot_vehicle", "Sending Vehicle To Depot", 1500, false, true, {
-        disableMovement = true,
-        disableCarMovement = true,
-        disableMouse = false,
-        disableCombat = true,
-    }, {}, {}, {}, function()
-        TriggerServerEvent('brazzers-tow:server:depotVehicle', plate, class, NetworkID)
-    end, function()
-    end)
-end
-
-RegisterNetEvent('brazzers-tow:client:truckSpawned', function(NetID, plate)
-    if NetID and plate then
-        CachedNet = NetID
-        local vehicle = NetToVeh(NetID)
-        exports[Config.Fuel]:SetFuel(vehicle, 100.0)
-        TriggerServerEvent("qb-vehiclekeys:server:AcquireVehicleKeys", plate)
-        notification("CURRENT", "You have signed in, vehicle outside", 'primary')
-    end
-    signedIn = true
-end)
 
 local function hookVehicle(NetworkID)
     local flatbed = NetworkGetEntityFromNetworkId(NetworkID)
@@ -284,6 +247,21 @@ RegisterNetEvent('brazzers-tow:client:syncDetach', function(flatbed)
     TriggerServerEvent('brazzers-tow:server:syncHook', false, NetworkGetNetworkIdFromEntity(cFlatbed), nil)
 end)
 
+RegisterNetEvent('brazzers-tow:client:truckSpawned', function(NetID, plate)
+    if NetID and plate then
+        CachedNet = NetID
+        local vehicle = NetToVeh(NetID)
+        exports[Config.Fuel]:SetFuel(vehicle, 100.0)
+        TriggerServerEvent("qb-vehiclekeys:server:AcquireVehicleKeys", plate)
+        notification("CURRENT", "You have signed in, vehicle outside", 'primary')
+    end
+    signedIn = true
+end)
+
+RegisterNetEvent('brazzers-tow:client:forceSignOut', function()
+    forceSignOut()
+end)
+
 AddEventHandler('onResourceStop', function(resource)
     if resource == GetCurrentResourceName() then
         RemoveBlip(blip)
@@ -293,7 +271,7 @@ AddEventHandler('onResourceStop', function(resource)
 -- Threads
 
 CreateThread(function()
-    exports['rush-eye']:AddGlobalVehicle({
+    exports[Config.Target]:AddGlobalVehicle({
         options = {
             {
                 label = "Hook Vehicle",
@@ -303,7 +281,7 @@ CreateThread(function()
                 end,
                 canInteract = function(entity)
                     if not isTowVehicle(entity) then return end
-                    if not isTow() then return end
+                    if Config.AllowTowOnly and not isTow() then return end
 
                     local target = GetEntityBehindTowTruck(entity, -8, 0.7)
                     if not target or target == 0 then return end
@@ -323,7 +301,7 @@ CreateThread(function()
                 end,
                 canInteract = function(entity)
                     if not isTowVehicle(entity) then return end
-                    if not isTow() then return end
+                    if Config.AllowTowOnly and not isTow() then return end
 
                     local state = Entity(entity).state.FlatBed
                     if not state then return end
@@ -334,54 +312,5 @@ CreateThread(function()
             },
         },
         distance = 1.5
-    })
-    exports['rush-eye']:AddGlobalVehicle({
-        options = {
-            {
-                label = "Depot Vehicle",
-                icon = "fas fa-car-rear",
-                action = function(entity)
-                    depotVehicle(NetworkGetNetworkIdFromEntity(entity))
-                end,
-                canInteract = function(entity)
-                    return isTow() and inZone()
-                end
-            }
-        },
-        distance = 1.5
-    })
-end)
-
-CreateThread(function()
-    exports[Config.Target]:AddBoxZone("tow_signin", Config.LaptopCoords, 0.2, 0.4, {
-        name = "tow_signin",
-        heading = 117.93,
-        debugPoly = false,
-        minZ = Config.LaptopCoords.z,
-        maxZ = Config.LaptopCoords.z + 1.0,
-        }, {
-            options = {
-            {
-                action = function()
-                    signIn()
-                end,
-                icon = 'fas fa-hands',
-                label = 'Sign In',
-                canInteract = function()
-                    if not signedIn then return true end
-                end,
-            },
-            {
-                action = function()
-                    signOut()
-                end,
-                icon = 'fas fa-hands',
-                label = 'Sign Out',
-                canInteract = function()
-                    if signedIn then return true end
-                end,
-            },
-        },
-        distance = 1.0,
     })
 end)

@@ -4,17 +4,6 @@ local cachedTow = {}
 local usedPlates = {}
 local markedVehicles = {}
 
-function notifyGroup(src, type, msg, group)
-    if not group then return TriggerClientEvent('QBCore:Notify', src, msg, type) end
-    exports[Config.Phone]:pNotifyGroup(group,
-        "CURRENT",
-        msg,
-        "fas fa-user",
-        "#2193eb",
-        7500
-    )
-end
-
 local function forceSignOut(source, group, resetAll)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
@@ -246,36 +235,37 @@ RegisterNetEvent('brazzers-tow:server:syncDetach', function(flatbed)
     TriggerClientEvent('brazzers-tow:client:syncDetach', -1, flatbed)
 end)
 
-RegisterNetEvent('brazzers-tow:server:depotVehicle', function(plate, class, action)
-    if not plate or not action then return end
+RegisterNetEvent('brazzers-tow:server:depotVehicle', function(plate, class, netID)
+    if not plate then return end
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     if not Player then return end
 
     if Config.MarkedVehicleOnly and not isVehicleMarked(plate) then return TriggerClientEvent('QBCore:Notify', src, "This vehicle is not marked for tow") end
 
-    if action == 'check' then
-        TriggerClientEvent('brazzers-tow:client:depotVehicle', src)
-    elseif action == 'depot' then
-        local payout = Config.Payout[class]['payout']
+    if DoesEntityExist(NetworkGetEntityFromNetworkId(netID)) then
+        DeleteEntity(NetworkGetEntityFromNetworkId(netID))
+    end
 
-        if not Config.RenewedPhone then
-            Player.Functions.AddMoney('cash', payout)
-            TriggerClientEvent('QBCore:Notify', src, 'You received $'..payout)
-            return
-        end
+    local payout = Config.Payout[class]['payout']
 
-        local group = exports[Config.Phone]:GetGroupByMembers(src)
-        if not group then return end
+    if not Config.RenewedPhone then
+        Player.Functions.AddMoney('cash', payout)
+        TriggerClientEvent('QBCore:Notify', src, 'You received $'..payout)
+        return
+    end
 
-        local members = exports[Config.Phone]:getGroupMembers(group)
-        if not members then return end
+    local group = exports[Config.Phone]:GetGroupByMembers(src)
+    if not group then return end
 
-        for i=1, #members do
-            if members[i] then
-                local groupMembers = QBCore.Functions.GetPlayer(members[i])
-                groupMembers.Functions.AddMoney('cash', payout)
-                TriggerClientEvent('QBCore:Notify', members[i], 'You received $'..payout)
+    local members = exports[Config.Phone]:getGroupMembers(group)
+    if not members then return end
+
+    for i=1, #members do
+        if members[i] then
+            local groupMembers = QBCore.Functions.GetPlayer(members[i])
+            if groupMembers.PlayerData.job.name == 'tow' then
+                Player.Functions.AddMoney('cash', payout)
             end
         end
     end
