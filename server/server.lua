@@ -190,7 +190,7 @@ RegisterNetEvent('brazzers-tow:server:markForTow', function(vehicle, plate)
     for _, v in pairs(QBCore.Functions.GetPlayers()) do
         local Employees = QBCore.Functions.GetPlayer(v)
         if Employees then
-            if Employees.PlayerData.job.name == 'tow' and Employees.PlayerData.job.onduty then
+            if Employees.PlayerData.job.name == Config.Job and Employees.PlayerData.job.onduty then
                 if not Config.RenewedPhone then return TriggerClientEvent('brazzers-tow:client:receiveTowRequest', Employees.PlayerData.source, coords, vehicle, plate) end
 
                 local info = {Receiver = Employees, Sender = src}
@@ -264,7 +264,7 @@ RegisterNetEvent('brazzers-tow:server:depotVehicle', function(plate, class, netI
     for i=1, #members do
         if members[i] then
             local groupMembers = QBCore.Functions.GetPlayer(members[i])
-            if groupMembers.PlayerData.job.name == 'tow' then
+            if groupMembers.PlayerData.job.name == Config.Job then
                 Player.Functions.AddMoney('cash', payout)
             end
         end

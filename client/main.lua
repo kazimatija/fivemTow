@@ -44,7 +44,7 @@ local function RayCast(origin, target, options, ignoreEntity, radius)
     return GetShapeTestResult(handle)
 end
 
-local function RequestControl(entity)
+local function ControlEntity(entity)
 	local timeout = false
 	if not NetworkHasControlOfEntity(entity) then
 		NetworkRequestControlOfEntity(entity)
@@ -76,12 +76,12 @@ local function GetEntityBehindTowTruck(towTruck, towDistance, towRadius)
     return targetEntity
 end
 
-local function FindVehicleAttachedToVehicle(pVehicle)
+local function FindVehicleAttachedToVehicle(cFlatbed)
 	local handle, vehicle = FindFirstVehicle()
-    local success
+    local success = nil
 
 	repeat
-		if GetEntityAttachedTo(vehicle) == pVehicle then
+		if GetEntityAttachedTo(vehicle) == cFlatbed then
 			return vehicle
 		end
 
@@ -99,10 +99,10 @@ local function attachVehicleToBed(flatbed, target)
         local offset = GetAttachOffset(target)
         if not offset then return end
 
-        local hasControlOfTow = RequestControl(flatbed)
-        local hasControlOfTarget = RequestControl(target)
+        local hasControlOfTow = ControlEntity(flatbed)
+        local hasControlOfVehicle = ControlEntity(target)
 
-        if hasControlOfTow and hasControlOfTarget then
+        if hasControlOfTow and hasControlOfVehicle then
             AttachEntityToEntity(target, flatbed, GetEntityBoneIndexByName(flatbed, 'bodyshell'), offset.x, offset.y, offset.z, 0, 0, 0, 1, 1, 0, 0, 0, 1)
             SetCanClimbOnEntity(target, false)
         end
@@ -166,7 +166,6 @@ local function hookVehicle(NetworkID)
         TaskTurnPedToFaceCoord(PlayerPedId(), targetCoords, 1.0)
         Wait(1000)
         -- Animation
-
         QBCore.Functions.Progressbar("filling_nitrous", "Hooking up vehicle", 2500, false, false, {
             disableMovement = true,
             disableCarMovement = false,
@@ -208,7 +207,6 @@ local function unHookVehicle(NetworkID)
     TaskTurnPedToFaceEntity(PlayerPedId(), flatbed, 1.0)
     Wait(1000)
     -- Animation
-
     QBCore.Functions.Progressbar("untowing_vehicle", "Untowing vehicle", 2500, false, false, {
         disableMovement = true,
         disableCarMovement = false,
