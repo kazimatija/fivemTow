@@ -5,6 +5,10 @@ local CachedNet = nil
 
 -- Functions
 
+exports('isSignedIn', function()
+    return signedIn
+end)
+
 local function getSpawn()
     for _, v in pairs(Config.VehicleSpawns) do
         if not IsAnyVehicleNearPoint(v.x, v.y, v.z, 4) then
