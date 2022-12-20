@@ -2,9 +2,16 @@ local QBCore = exports[Config.Core]:GetCoreObject()
 
 local signedIn = false
 local CachedNet = nil
-local blip = nil
 
 -- Functions
+
+local function getSpawn()
+    for _, v in pairs(Config.VehicleSpawns) do
+        if not IsAnyVehicleNearPoint(v.x, v.y, v.z, 4) then
+            return v
+        end
+    end
+end
 
 function isTow()
     local PlayerData = QBCore.Functions.GetPlayerData()
@@ -117,20 +124,11 @@ local function isTowVehicle(vehicle)
     return retval
 end
 
-local function getSpawn()
-    for _, v in pairs(Config.VehicleSpawns) do
-        if not IsAnyVehicleNearPoint(v.x, v.y, v.z, 4) then
-            return v
-        end
-    end
-end
-
 local function forceSignOut()
     if not signedIn then return end
 
     signedIn = false
     notification("CURRENT", "You have signed out!", 'primary')
-    RemoveBlip(blip)
 end
 
 local function hookVehicle(NetworkID)
@@ -259,12 +257,6 @@ end)
 RegisterNetEvent('brazzers-tow:client:forceSignOut', function()
     forceSignOut()
 end)
-
-AddEventHandler('onResourceStop', function(resource)
-    if resource == GetCurrentResourceName() then
-        RemoveBlip(blip)
-    end
- end)
 
 -- Threads
 
