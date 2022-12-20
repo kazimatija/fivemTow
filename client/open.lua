@@ -1,3 +1,13 @@
+local blips = {}
+
+-- Commands
+
+RegisterCommand('calltow', function() -- call tow command
+    TriggerEvent('brazzers-tow:client:requestTowTruck')
+end)
+
+-- Functions
+
 function notification(title, msg, action)
     if Config.NotificationStyle == 'phone' then
         TriggerEvent('qb-phone:client:CustomNotification', title, msg, 'fas fa-user', '#b3e0f2', 5000)
@@ -8,16 +18,6 @@ function notification(title, msg, action)
             QBCore.Functions.Notify(msg, action, 5000)
         end
     end
-end
-
-function CreateBlip(coords)
-    blip = AddBlipForCoord(coords.x, coords.y, coords.z)
-    SetBlipScale(blip, 0.7)
-	SetBlipColour(blip, 3)
-	SetBlipRoute(blip, true)
-    BeginTextCommandSetBlipName("STRING")
-    AddTextComponentSubstringPlayerName('Tow Call')
-    EndTextCommandSetBlipName(blip)
 end
 
 local function depotVehicle(NetworkID)
@@ -35,6 +35,9 @@ local function depotVehicle(NetworkID)
     end)
 end
 
+-- Events
+
+-- YOU CAN USE THIS EVENT TO INPUT INTO RADIAL MENU OR WHATEVER YOU WANT TO REQUEST TOW
 RegisterNetEvent("brazzers-tow:client:requestTowTruck", function()
     local vehicle = QBCore.Functions.GetClosestVehicle()
     local plate = QBCore.Functions.GetPlate(vehicle)
@@ -60,12 +63,44 @@ RegisterNetEvent("brazzers-tow:client:sendTowRequest", function(info, vehicle, p
     TriggerServerEvent("brazzers-tow:server:sendTowRequest", info, vehicle, plate, pos)
 end)
 
-RegisterNetEvent('brazzers-tow:client:receiveTowRequest', function(pos, vehicle, plate)
-    CreateBlip(pos)
-    TriggerEvent('qb-phone:client:CustomNotification', 'CURRENT', "Location has been marked for the vehicle!", 'fas fa-map-pin', '#b3e0f2', 2000)
-    Wait(5000)
-    TriggerEvent('qb-phone:client:CustomNotification', 'CURRENT', "Vehicle: "..vehicle.." | Plate: "..plate, 'fas fa-map-pin', '#b3e0f2', 120000)
+RegisterNetEvent('brazzers-tow:client:receiveTowRequest', function(pos, vehicle, plate, blipId)
+    CreateThread(function()
+        local alpha = 255
+        local blip = nil
+        local radius = nil
+        local radiusAlpha = 128
+        local sprite, colour, scale = 280, 17, 1.0
+
+        blip = AddBlipForCoord(pos.x, pos.y, pos.z)
+        blips[blipId] = blip
+        -- Extra Shit
+        SetBlipSprite(blip, sprite)
+        SetBlipHighDetail(blip, true)
+        SetBlipScale(blip, scale)
+        SetBlipColour(blip, colour)
+        SetBlipAlpha(blip, alpha)
+        SetBlipAsShortRange(blip, false)
+        SetBlipCategory(blip, 2)
+        SetBlipColour(radius, colour)
+        SetBlipAlpha(radius, radiusAlpha)
+        BeginTextCommandSetBlipName('STRING')
+        AddTextComponentString('Tow Request: '..plate)
+        EndTextCommandSetBlipName(blip)
+
+        while radiusAlpha ~= 0 do
+            Wait(Config.BlipLength * 1000)
+            radiusAlpha = radiusAlpha - 1
+            SetBlipAlpha(radius, radiusAlpha)	
+            if radiusAlpha == 0 then
+                RemoveBlip(radius)
+                RemoveBlip(blip)
+                return
+            end
+        end
+    end)
 end)
+
+-- Threads
 
 CreateThread(function()
     exports[Config.Target]:AddBoxZone("tow_signin", Config.LaptopCoords, 0.2, 0.4, {
@@ -120,4 +155,12 @@ CreateThread(function()
         },
         distance = 1.5
     })
+end)
+
+AddEventHandler('onResourceStop', function(resource)
+    if resource == GetCurrentResourceName() then
+        for k, _ in pairs(blips) do
+            RemoveBlip(blips[k])
+        end
+    end
 end)

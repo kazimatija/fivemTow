@@ -3,6 +3,7 @@ local QBCore = exports[Config.Core]:GetCoreObject()
 local cachedTow = {}
 local usedPlates = {}
 local markedVehicles = {}
+local calls = 0
 
 local function forceSignOut(source, group, resetAll)
     local src = source
@@ -186,12 +187,13 @@ RegisterNetEvent('brazzers-tow:server:markForTow', function(vehicle, plate)
     local coords = GetEntityCoords(GetPlayerPed(src))
 
     markedVehicles[plate] = true
+    calls = calls + 1
 
     for _, v in pairs(QBCore.Functions.GetPlayers()) do
         local Employees = QBCore.Functions.GetPlayer(v)
         if Employees then
             if Employees.PlayerData.job.name == Config.Job and Employees.PlayerData.job.onduty then
-                if not Config.RenewedPhone then return TriggerClientEvent('brazzers-tow:client:receiveTowRequest', Employees.PlayerData.source, coords, vehicle, plate) end
+                if not Config.RenewedPhone then return TriggerClientEvent('brazzers-tow:client:receiveTowRequest', Employees.PlayerData.source, coords, vehicle, plate, calls) end
 
                 local info = {Receiver = Employees, Sender = src}
                 local group = exports[Config.Phone]:GetGroupByMembers(Employees.PlayerData.source)
@@ -212,9 +214,11 @@ RegisterNetEvent("brazzers-tow:server:sendTowRequest", function(info, vehicle, p
     local members = exports[Config.Phone]:getGroupMembers(group)
     if not members then return end
 
+    calls = calls + 1
+
     for i=1, #members do
         if members[i] then
-            TriggerClientEvent('brazzers-tow:client:receiveTowRequest', members[i], pos, vehicle, plate) -- SEND BLIP
+            TriggerClientEvent('brazzers-tow:client:receiveTowRequest', members[i], pos, vehicle, plate, calls) -- SEND BLIP
         end
     end
    
