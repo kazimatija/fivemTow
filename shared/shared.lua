@@ -3,6 +3,7 @@ Config = Config or {}
 Config.Core = 'qb-core'
 Config.Target = 'qb-target'
 Config.Fuel = 'LegacyFuel'
+Config.Menu = 'qb-menu'
 
 Config.NotificationStyle = 'phone' -- 'phone' for Renewed's Phone notifications | 'qbcore' for standard qbcore notifications
 Config.TowTruck = 'flatbed' -- Tow truck model name
@@ -29,6 +30,16 @@ Config.VehicleSpawns = { -- Vehicle spawns for the tow truck
     vector4(486.88, -1332.38, 29.38, 297.66),
     vector4(496.51, -1332.84, 29.42, 3.8),
     vector4(492.45, -1331.87, 29.41, 344.83)
+}
+
+-- REPUTATION CONFIG --
+Config.RepName = 'trucking'
+Config.RepLevels = {
+    [1] = { ['label'] = 'Expert', ['repNeeded'] = 800 },
+    [2] = { ['label'] = 'Pro', ['repNeeded'] = 500 },
+    [3] = { ['label'] = 'Intermediate', ['repNeeded'] = 250 },
+    [4] = { ['label'] = 'Novice', ['repNeeded'] = 20 },
+    [5] = { ['label'] = 'Beginner', ['repNeeded'] = 0 },
 }
 
 Config.Payout = {
