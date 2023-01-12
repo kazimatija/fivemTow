@@ -2,7 +2,7 @@ local QBCore = exports[Config.Core]:GetCoreObject()
 
 local function getReward(source)
     local Player = QBCore.Functions.GetPlayer(source)
-    local repAmount = Player.PlayerData.metadata[Config.RepName]
+    local repAmount = Player.PlayerData.metadata['jobrep'][Config.RepName]
 
     for k, _ in pairs(Config.RepLevels) do
         if repAmount >= Config.RepLevels[k]['repNeeded'] then
@@ -13,7 +13,7 @@ end
 
 local function getMultiplier(source)
     local Player = QBCore.Functions.GetPlayer(source)
-    local repAmount = Player.PlayerData.metadata[Config.RepName]
+    local repAmount = Player.PlayerData.metadata['jobrep'][Config.RepName]
 
     for k, _ in pairs(Config.RepLevels) do
         if repAmount >= Config.RepLevels[k]['repNeeded'] then
@@ -34,7 +34,7 @@ function createVehicle(source)
     while not QBCore do Wait(250) end
 
     local Player = QBCore.Functions.GetPlayer(source)
-    local metaData = Player.PlayerData.metadata[Config.RepName] or 0
+    local metaData = Player.PlayerData.metadata['jobrep'][Config.RepName] or 0
 
     local vehicle = {}
     local class = nil
@@ -73,7 +73,7 @@ function createVehicle(source)
     if not class then return createVehicle(source) end
 
     for k, v in pairs(QBCore.Shared.Vehicles) do
-        if v['category'] and v['category'] == class then
+        if v[Config.SharedTierName] and v[Config.SharedTierName] == class then
             vehicle[#vehicle + 1] = k
         end
     end
@@ -96,6 +96,10 @@ function moneyEarnings(source, class, inGroup)
         payout = payout + (math.ceil(payout * groupExtra))
     end
 
+    -- You can remove this if you want no multiplier!
+    local multiplier = Config.RepLevels[class]['multiplier']
+    payout = payout + (math.ceil(payout * multiplier))
+
     Player.Functions.AddMoney('cash', math.ceil(payout))
     TriggerClientEvent('QBCore:Notify', source, Config.Lang['primary'][11]..''..payout)
 end
@@ -103,7 +107,7 @@ end
 function metaEarnings(source, inGroup)
     local Player = QBCore.Functions.GetPlayer(source)
 
-    local curRep = Player.PlayerData.metadata[Config.RepName]
+    local curRep = Player.PlayerData.metadata['jobrep'][Config.RepName]
     local reward = getReward(source)
 
     if Config.AllowRep then
