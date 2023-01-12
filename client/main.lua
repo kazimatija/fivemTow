@@ -376,8 +376,8 @@ CreateThread(function()
                 name = 'tow_hook_vehicle',
                 icon = Config.Lang['target']['hookVehicle'].icon,
                 label = Config.Lang['target']['hookVehicle'].title,
-                onSelect = function(entity)
-                    hookVehicle(NetworkGetNetworkIdFromEntity(entity))
+                onSelect = function(data)
+                    hookVehicle(NetworkGetNetworkIdFromEntity(data.entity))
                 end,
                 canInteract = function(entity)
                     if not isTowVehicle(entity) then return end
@@ -397,8 +397,8 @@ CreateThread(function()
                 name = 'tow_unhook_vehicle',
                 icon = Config.Lang['target']['unHookVehicle'].icon,
                 label = Config.Lang['target']['unHookVehicle'].title,
-                onSelect = function(entity)
-                    unHookVehicle(NetworkGetNetworkIdFromEntity(entity))
+                onSelect = function(data)
+                    unHookVehicle(NetworkGetNetworkIdFromEntity(data.entity))
                 end,
                 canInteract = function(entity)
                     if not isTowVehicle(entity) then return end
@@ -415,8 +415,8 @@ CreateThread(function()
                 name = 'tow_depot_vehicle',
                 icon = Config.Lang['target']['depotVehicle'].icon,
                 label = Config.Lang['target']['depotVehicle'].title,
-                onSelect = function(entity)
-                    depotVehicle(NetworkGetNetworkIdFromEntity(entity))
+                onSelect = function(data)
+                    depotVehicle(NetworkGetNetworkIdFromEntity(data.entity))
                 end,
                 canInteract = function(entity)
                     if not isTow() then return end
@@ -447,7 +447,7 @@ CreateThread(function()
                 end
             },
         }
-        exports.ox_target:addGlobalPed(options)
+        exports.ox_target:addGlobalVehicle(options)
         return
     end
 
