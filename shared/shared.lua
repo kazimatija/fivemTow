@@ -115,7 +115,7 @@ Config.Payout = {
         ['B'] = { ['payout'] = 350 },
         ['A'] = { ['payout'] = 450 },
         ['S'] = { ['payout'] = 550 },
-    }
+    },
 }
 
 Config.Locations = {
