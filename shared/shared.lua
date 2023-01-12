@@ -41,7 +41,7 @@ Config.VehicleSpawns = { -- Vehicle spawns for the tow truck
 
 -- QUEUE CONFIG --
 Config.UseQueue = true -- Set to false if you want to receive contracts instantly when requested
-Config.QueueTimer = 5 -- Amount of time to wait in queue in minutes for a AI mission (above must be true)
+Config.QueueTimer = 0 -- Amount of time to wait in queue in minutes for a AI mission (above must be true)
 Config.ReQueue = true -- Do you want to auto requeue when completing a mission (this is basically if you want to auto get another job after completing one so you don't have to go back to the laptop and request)
 
 -- REPUTATION CONFIG --
@@ -192,6 +192,7 @@ Config.Lang = {
         [9] = 'You have received your deposit back',
         [10] = 'A driver accepted your tow request',
         [11] = 'You received $',
+        [12] = 'You earned '
     },
     ['error'] = {
         [1] = 'There\'s a vehicle in the way',
