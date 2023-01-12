@@ -63,40 +63,65 @@ function viewMissionBoard()
         label = repLevel..' | '..repAmount..'x Reputation'
     end
     QBCore.Functions.TriggerCallback('brazzers-tow:server:isOnMission', function(inQueue)
-        local menu = {
-            {
-                header = label,
-                isMenuHeader = true,
-                icon = "fas fa-building",
-            },
-        }
-        menu[#menu+1] = {
-            header = 'Start Mission',
-            isMenuHeader = isSignedIn,
-            txt = 'Queue into missions dispatched by Bon Joe',
-            icon = "fas fa-briefcase",
-            params = {
-                event = "brazzers-tow:client:joinQueue",
-            }
-        }
-        if inQueue then
+        if Config.Menu == 'ox' then
+            local menu = {}
             menu[#menu+1] = {
-                header = 'Leave Queue',
+                title = 'Start Mission',
+                icon = "fas fa-briefcase",
+                description = 'Queue into missions dispatched by Bon Joe',
+                event = "brazzers-tow:client:joinQueue",
+                disabled = isSignedIn,
+            }
+            if inQueue then
+                menu[#menu+1] = {
+                    title = 'Leave Queue',
+                    icon = "fas fa-briefcase",
+                    serverEvent = "brazzers-tow:server:leaveQueue",
+                }
+            end
+            lib.registerContext({
+                id = 'brazzers-tow:mainMenu',
+                icon = "fas fa-building",
+                title = label,
+                options = menu
+            })
+            lib.showContext('brazzers-tow:mainMenu')
+        else
+            local menu = {
+                {
+                    header = label,
+                    isMenuHeader = true,
+                    icon = "fas fa-building",
+                },
+            }
+            menu[#menu+1] = {
+                header = 'Start Mission',
+                isMenuHeader = isSignedIn,
+                txt = 'Queue into missions dispatched by Bon Joe',
                 icon = "fas fa-briefcase",
                 params = {
-                    isServer = true,
-                    event = "brazzers-tow:server:leaveQueue",
+                    event = "brazzers-tow:client:joinQueue",
                 }
             }
-        end
-        menu[#menu+1] = {
-            header = "Close",
-            icon = 'fas fa-angle-left',
-            params = {
-                event = "qb-menu:client:closeMenu"
+            if inQueue then
+                menu[#menu+1] = {
+                    header = 'Leave Queue',
+                    icon = "fas fa-briefcase",
+                    params = {
+                        isServer = true,
+                        event = "brazzers-tow:server:leaveQueue",
+                    }
+                }
+            end
+            menu[#menu+1] = {
+                header = "Close",
+                icon = 'fas fa-angle-left',
+                params = {
+                    event = "qb-menu:client:closeMenu"
+                }
             }
-        }
-        exports[Config.Menu]:openMenu(menu)
+            exports[Config.Menu]:openMenu(menu)
+        end
     end)
 end
 
@@ -113,7 +138,7 @@ RegisterNetEvent('brazzers-tow:client:setCarDamage', function(netID, plate)
     Wait(1000)
     if netID and plate then
         local vehicle = NetToVeh(netID)
-        exports['rush-fuel']:SetFuel(vehicle, 0.0)
+        if Config.Fuel ~= 'ox' then exports['rush-fuel']:SetFuel(vehicle, 0.0) end
         doCarDamage(vehicle)
     end
 end)

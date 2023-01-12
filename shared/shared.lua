@@ -1,9 +1,9 @@
 Config = Config or {}
 
 Config.Core = 'qb-core'
-Config.Target = 'qb-target'
-Config.Fuel = 'LegacyFuel'
-Config.Menu = 'qb-menu'
+Config.Target = 'qb-target' -- ox or resource name (ex. 'qb-target' )
+Config.Fuel = 'qb-fuel' -- ox or resource name (ex. 'qb-fuel' )
+Config.Menu = 'qb-menu' -- 'ox' or resource name (ex. 'qb-menu')
 
 Config.NotificationStyle = 'phone' -- 'phone' for Renewed's Phone notifications | 'qbcore' for standard qbcore notifications
 Config.TowTruck = 'flatbed' -- Tow truck model name
@@ -83,7 +83,7 @@ Config.RepLevels = { -- All reputation levels, min rep needed for that rank, and
 }
 
 -- PAYOUT CONFIG --
-Config.BasePay = 100
+Config.BasePay = 100 -- if payout type is custom and for some reason you don't have the vehicle you towed in shared.lua, it cannot find a class hence will give this default pay
 Config.PayoutType = 'custom' -- 'custom' payout is based off the class defined in QBCore.Shared.Vehicles | 'standard' is utilizing payout based on GTA native class
 Config.Payout = {
     ['standard'] = {
@@ -115,7 +115,7 @@ Config.Payout = {
         ['B'] = { ['payout'] = 350 },
         ['A'] = { ['payout'] = 450 },
         ['S'] = { ['payout'] = 550 },
-    },
+    }
 }
 
 Config.Locations = {

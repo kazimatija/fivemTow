@@ -95,6 +95,10 @@ local function spawnVehicle(source, carType, group, coords)
         carEntity = nil,
     }
 
+    if Config.Fuel == 'ox' and GetResourceState('ox_fuel') == "started" then
+        Entity(car).state.fuel = 100.0
+    end
+
     if Config.RenewedPhone then
         local members = exports[Config.Phone]:getGroupMembers(group)
         if not members then return end

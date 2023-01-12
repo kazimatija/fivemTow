@@ -270,6 +270,56 @@ end)
 -- Threads
 
 CreateThread(function()
+    if Config.Target == 'ox' then
+        exports.ox_target:addBoxZone({
+            coords = Config.LaptopCoords,
+            size = vec3(0.2, 0.4, 1.0),
+            rotation = 117,
+            debug = Config.Debug,
+            options = {
+                {   
+                    name = 'tow_signin_laptop',
+                    icon = 'fas fa-hands',
+                    label = 'Sign In',
+                    onSelect = function()
+                        signIn()
+                    end,
+                    canInteract = function()
+                        if Config.WhitelistedJob and not isTow() then return end
+                        if signedIn then return end
+                        return true
+                    end,
+                },
+                {   
+                    name = 'tow_signout_laptop',
+                    icon = 'fas fa-hands',
+                    label = 'Sign Out',
+                    onSelect = function()
+                        signIn()
+                    end,
+                    canInteract = function()
+                        if not signedIn then return end
+                        return true
+                    end,
+                },
+                {   
+                    name = 'tow_missionboard_laptop',
+                    icon = 'fas fa-hands',
+                    label = 'View Mission Board',
+                    onSelect = function()
+                        viewMissionBoard()
+                    end,
+                    canInteract = function()
+                        if Config.WhitelistedJob and not isTow() then return end
+                        if not signedIn then return end
+                        return true
+                    end,
+                },
+            }
+        })
+        return
+    end
+
     exports[Config.Target]:AddBoxZone("tow_signin", Config.LaptopCoords, 0.2, 0.4, {
         name = "tow_signin",
         heading = 117.93,
@@ -319,6 +369,71 @@ CreateThread(function()
 end)
 
 CreateThread(function()
+    if Config.Target == 'ox' then
+        local options = {
+            {
+                name = 'tow_hook_vehicle',
+                label = 'Hook Vehicle',
+                icon = 'fas fa-car-rear',
+                onSelect = function(entity)
+                    hookVehicle(NetworkGetNetworkIdFromEntity(entity))
+                end,
+                canInteract = function(entity)
+                    if not isTowVehicle(entity) then return end
+                    if Config.AllowTowOnly and not isTow() then return end
+
+                    local target = GetEntityBehindTowTruck(entity, -8, 0.7)
+                    if not target or target == 0 then return end
+
+                    local state = Entity(entity).state.FlatBed
+                    if not state then return end
+                    if state.carAttached then return end
+
+                    return true
+                end
+            },
+            {
+                name = 'tow_unhook_vehicle',
+                label = 'Unhook Vehicle',
+                icon = 'fas fa-car-rear',
+                onSelect = function(entity)
+                    unHookVehicle(NetworkGetNetworkIdFromEntity(entity))
+                end,
+                canInteract = function(entity)
+                    if not isTowVehicle(entity) then return end
+                    if Config.AllowTowOnly and not isTow() then return end
+
+                    local state = Entity(entity).state.FlatBed
+                    if not state then return end
+                    if not state.carAttached then return end
+
+                    return true
+                end
+            },
+            {
+                name = 'tow_depot_vehicle',
+                label = 'Depot Vehicle',
+                icon = 'fas fa-car-rear',
+                onSelect = function(entity)
+                    depotVehicle(NetworkGetNetworkIdFromEntity(entity))
+                end,
+                canInteract = function(entity)
+                    if not isTow() then return end
+                    if not inZone() then return end
+                    local state = Entity(entity).state.FlatBed
+                    if state and state.carAttached then return end
+                    local markedState = Entity(entity).state.marked
+                    if not markedState then return end
+                    if not markedState.markedForTow then return end
+
+                    return true
+                end
+            },
+        }
+        exports.ox_target:addGlobalPed(options)
+        return
+    end
+
     exports[Config.Target]:AddGlobalVehicle({
         options = {
             {

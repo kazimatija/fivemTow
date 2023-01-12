@@ -68,7 +68,7 @@ local function generateVehicle(group, source)
         Entity(car).state.tow = {
             missionVehicle = true
         }
-        if GetResourceState('ox_fuel') == "started" then
+        if Config.Fuel == 'ox' and GetResourceState('ox_fuel') == "started" then
             Entity(car).state.fuel = 100.0
         end
         SetVehicleNumberPlateText(car, plate)
