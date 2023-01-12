@@ -200,6 +200,10 @@ RegisterNetEvent('brazzers-tow:server:joinQueue', function(isAllowed)
                 notification(members[i], 'CURRENT', 'You have joined the queue', 'primary')
             end
         end
+
+        if not Config.UseQueue then
+            generateMission(src)
+        end
         return
     end
 
@@ -221,6 +225,10 @@ RegisterNetEvent('brazzers-tow:server:joinQueue', function(isAllowed)
 
     TriggerClientEvent('brazzers-tow:client:queueIndex', src, cachedQueue[group].inQueue)
     notification(src, 'CURRENT', 'You have joined the queue', 'primary')
+
+    if not Config.UseQueue then
+        generateMission(src)
+    end
 end)
 
 RegisterNetEvent('brazzers-tow:server:reQueueSystem', function()
@@ -259,6 +267,10 @@ RegisterNetEvent('brazzers-tow:server:reQueueSystem', function()
                 notification(members[i], 'CURRENT', 'You have auto requeued!', 'primary')
             end
         end
+
+        if not Config.UseQueue then
+            generateMission(src)
+        end
         return
     end
 
@@ -277,6 +289,10 @@ RegisterNetEvent('brazzers-tow:server:reQueueSystem', function()
 
     TriggerClientEvent('brazzers-tow:client:queueIndex', src, cachedQueue[group].inQueue)
     notification(src, 'CURRENT', 'You have auto requeued!', 'primary')
+
+    if not Config.UseQueue then
+        generateMission(src)
+    end
 end)
 
 RegisterNetEvent('brazzers-tow:server:leaveQueue', function()
@@ -350,20 +366,22 @@ end)
 
 -- Threads
 
-CreateThread(function()
-    while true do
-        if cachedQueue then
-            for k, v in pairs(cachedQueue) do
-                if cachedMission[k] then
-                    if v.inQueue and v.available then
-                        generateMission(v.groupLeader)
+if Config.UseQueue then
+    CreateThread(function()
+        while true do
+            if cachedQueue then
+                for k, v in pairs(cachedQueue) do
+                    if cachedMission[k] then
+                        if v.inQueue and v.available then
+                            generateMission(v.groupLeader)
+                        end
                     end
                 end
             end
+            Wait(Config.QueueTimer * 60000)
         end
-        Wait(5000)
-    end
-end)
+    end)
+end
 
 -- Event Handlers
 
