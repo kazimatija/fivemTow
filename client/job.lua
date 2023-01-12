@@ -164,6 +164,12 @@ RegisterNetEvent('brazzers-tow:client:leaveQueue', function(notify)
     end
 end)
 
+RegisterNetEvent('brazzers-tow:client:sendMissionRequest', function()
+    local success = exports[Config.Phone]:PhoneNotification("JOB OFFER AI", 'Incoming Tow Request', 'fas fa-map-pin', '#b3e0f2', "NONE", 'fas fa-check-circle', 'fas fa-times-circle')
+    if not success then return TriggerServerEvent('brazzers-tow:server:sendMissionRequest', false) end
+    TriggerServerEvent('brazzers-tow:server:sendMissionRequest', true)
+end)
+
 RegisterCommand('testtow', function()
     viewMissionBoard()
 end)

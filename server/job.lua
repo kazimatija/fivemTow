@@ -9,6 +9,7 @@ local activePlates = {}
 -- Functions
 
 function resetLocation(location, instant)
+    if not location then return end
     if instant then
         Config.Locations[location]['isBusy'] = false
         return
@@ -79,6 +80,23 @@ local function generateVehicle(group, source)
     else
         return false
     end
+end
+
+local function sendMissionRequest(groupLeader)
+    local src = groupLeader
+    local Player = QBCore.Functions.GetPlayer(src)
+    local group = Player.PlayerData.citizenid
+
+    if Config.RenewedPhone then
+        group = exports[Config.Phone]:GetGroupByMembers(src)
+        if not group then return end
+
+        cachedQueue[group].inQueue = false
+        TriggerClientEvent('brazzers-tow:client:sendMissionRequest', src)
+        return
+    end
+    cachedQueue[group].inQueue = false
+    generateMission(src)
 end
 
 local function generateMission(groupLeader)
@@ -202,7 +220,7 @@ RegisterNetEvent('brazzers-tow:server:joinQueue', function(isAllowed)
         end
 
         if not Config.UseQueue then
-            generateMission(src)
+            sendMissionRequest(src)
         end
         return
     end
@@ -227,7 +245,7 @@ RegisterNetEvent('brazzers-tow:server:joinQueue', function(isAllowed)
     notification(src, 'CURRENT', 'You have joined the queue', 'primary')
 
     if not Config.UseQueue then
-        generateMission(src)
+        sendMissionRequest(src)
     end
 end)
 
@@ -245,7 +263,9 @@ RegisterNetEvent('brazzers-tow:server:reQueueSystem', function()
         local members = exports[Config.Phone]:getGroupMembers(group)
         if not members then return end
 
-        resetLocation(currentMission[group].place, true)
+        if currentMission[group] then
+            resetLocation(currentMission[group].place, true)
+        end
 
         cachedQueue[group] = {}
         cachedMission[group] = {}
@@ -269,7 +289,7 @@ RegisterNetEvent('brazzers-tow:server:reQueueSystem', function()
         end
 
         if not Config.UseQueue then
-            generateMission(src)
+            sendMissionRequest(src)
         end
         return
     end
@@ -291,7 +311,7 @@ RegisterNetEvent('brazzers-tow:server:reQueueSystem', function()
     notification(src, 'CURRENT', 'You have auto requeued!', 'primary')
 
     if not Config.UseQueue then
-        generateMission(src)
+        sendMissionRequest(src)
     end
 end)
 
@@ -339,6 +359,12 @@ RegisterNetEvent('brazzers-tow:server:leaveQueue', function()
     TriggerClientEvent('brazzers-tow:client:leaveQueue', src, true)
 end)
 
+RegisterNetEvent('brazzers-tow:server:sendMissionRequest', function(accepted)
+    local src = source
+    if not accepted then return TriggerClientEvent('brazzers-tow:client:reQueueSystem', src) end
+    generateMission(src)
+end)
+
 -- Callback
 
 QBCore.Functions.CreateCallback("brazzers-tow:server:isOnMission", function(source, cb)
@@ -373,7 +399,7 @@ if Config.UseQueue then
                 for k, v in pairs(cachedQueue) do
                     if cachedMission[k] then
                         if v.inQueue and v.available then
-                            generateMission(v.groupLeader)
+                            sendMissionRequest(v.groupLeader)
                         end
                     end
                 end
