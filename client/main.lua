@@ -247,10 +247,15 @@ RegisterNetEvent('brazzers-tow:client:syncDetach', function(flatbed)
     TriggerServerEvent('brazzers-tow:server:syncHook', false, NetworkGetNetworkIdFromEntity(cFlatbed), nil)
 end)
 
+RegisterNetEvent('brazzers-tow:client:groupDeleted', function()
+    TriggerServerEvent('brazzers-tow:server:forceSignOut')
+end)
+
 RegisterNetEvent('brazzers-tow:client:truckSpawned', function(NetID, plate)
     if NetID and plate then
         CachedNet = NetID
         local vehicle = NetToVeh(NetID)
+        print(vehicle)
         exports[Config.Fuel]:SetFuel(vehicle, 100.0)
         TriggerServerEvent("qb-vehiclekeys:server:AcquireVehicleKeys", plate)
         notification("CURRENT", "You have signed in, vehicle outside", 'primary')
@@ -263,6 +268,55 @@ RegisterNetEvent('brazzers-tow:client:forceSignOut', function()
 end)
 
 -- Threads
+
+CreateThread(function()
+    exports[Config.Target]:AddBoxZone("tow_signin", Config.LaptopCoords, 0.2, 0.4, {
+        name = "tow_signin",
+        heading = 117.93,
+        debugPoly = false,
+        minZ = Config.LaptopCoords.z,
+        maxZ = Config.LaptopCoords.z + 1.0,
+        }, {
+            options = {
+            {
+                action = function()
+                    signIn()
+                end,
+                icon = 'fas fa-hands',
+                label = 'Sign In',
+                canInteract = function()
+                    if Config.WhitelistedJob and not isTow() then return end
+                    if signedIn then return end
+                    return true
+                end,
+            },
+            {
+                action = function()
+                    signOut()
+                end,
+                icon = 'fas fa-hands',
+                label = 'Sign Out',
+                canInteract = function()
+                    if not signedIn then return end
+                    return true
+                end,
+            },
+            {
+                action = function()
+                    viewMissionBoard()
+                end,
+                icon = 'fas fa-hands',
+                label = 'View Mission Board',
+                canInteract = function()
+                    if Config.WhitelistedJob and not isTow() then return end
+                    if not signedIn then return end
+                    return true
+                end,
+            },
+        },
+        distance = 1.0,
+    })
+end)
 
 CreateThread(function()
     exports[Config.Target]:AddGlobalVehicle({

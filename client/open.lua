@@ -1,3 +1,5 @@
+local QBCore = exports[Config.Core]:GetCoreObject()
+
 local blips = {}
 
 -- Commands
@@ -20,10 +22,23 @@ function notification(title, msg, action)
     end
 end
 
+local function generateCustomClass(entity)
+    local model = GetEntityModel(entity)
+    for k, v in pairs(QBCore.Shared.Vehicles) do
+        if QBCore.Shared.Vehicles[k]['hash'] == model then
+            return QBCore.Shared.Vehicles[k]['category']
+        end
+    end
+end
+
 local function depotVehicle(NetworkID)
     local entity = NetworkGetEntityFromNetworkId(NetworkID)
     local plate = QBCore.Functions.GetPlate(entity)
     local class = GetVehicleClass(entity)
+
+    if Config.PayoutType == 'custom' then
+        class = generateCustomClass(entity)
+    end
     QBCore.Functions.Progressbar("depot_vehicle", "Sending Vehicle To Depot", 1500, false, true, {
         disableMovement = true,
         disableCarMovement = true,
@@ -44,15 +59,16 @@ RegisterNetEvent("brazzers-tow:client:requestTowTruck", function()
     local vehname = GetDisplayNameFromVehicleModel(GetEntityModel(vehicle)):lower()
 
     TriggerEvent('animations:client:EmoteCommandStart', {"phonecall"})
-    QBCore.Functions.Progressbar("calling-tow", "Calling Tow", 1500, false, false, {
+    QBCore.Functions.Progressbar("calling_tow", 'Calling Tow', 3500, false, true, {
         disableMovement = true,
-        disableCarMovement = false,
+        disableCarMovement = true,
         disableMouse = false,
         disableCombat = true,
     }, {}, {}, {}, function()
         TriggerEvent('animations:client:EmoteCommandStart', {"c"})
-        TriggerServerEvent("brazzers-tow:server:markForTow", vehname, plate)
+        TriggerServerEvent("brazzers-tow:server:markForTow", NetworkGetNetworkIdFromEntity(vehicle), vehname, plate)
     end, function() -- Cancel
+        TriggerEvent('DoLongHudText', 'Canceled', 2)
         TriggerEvent('animations:client:EmoteCommandStart', {"c"})
     end)
 end)
@@ -101,43 +117,6 @@ RegisterNetEvent('brazzers-tow:client:receiveTowRequest', function(pos, vehicle,
 end)
 
 -- Threads
-
-CreateThread(function()
-    exports[Config.Target]:AddBoxZone("tow_signin", Config.LaptopCoords, 0.2, 0.4, {
-        name = "tow_signin",
-        heading = 117.93,
-        debugPoly = false,
-        minZ = Config.LaptopCoords.z,
-        maxZ = Config.LaptopCoords.z + 1.0,
-        }, {
-            options = {
-            {
-                action = function()
-                    signIn()
-                end,
-                icon = 'fas fa-hands',
-                label = 'Sign In',
-                canInteract = function()
-                    if Config.WhitelistedJob and not isTow() then return end
-                    if signedIn then return end
-                    return true
-                end,
-            },
-            {
-                action = function()
-                    signOut()
-                end,
-                icon = 'fas fa-hands',
-                label = 'Sign Out',
-                canInteract = function()
-                    if not signedIn then return end
-                    return true
-                end,
-            },
-        },
-        distance = 1.0,
-    })
-end)
 
 CreateThread(function()
     exports[Config.Target]:AddGlobalVehicle({
