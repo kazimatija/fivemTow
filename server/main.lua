@@ -15,7 +15,7 @@ end
 local function isMissionEntity(vehicle)
     local syncedVehicle = NetworkGetEntityFromNetworkId(vehicle)
     local syncedState = Entity(syncedVehicle).state.tow
-    if not syncedState then return print('State: FALSE') end
+    if not syncedState then return end
 
     if syncedState.missionVehicle then
         return true
@@ -115,6 +115,7 @@ local function spawnVehicle(source, carType, group, coords)
 end
 
 RegisterNetEvent('brazzers-tow:server:syncHook', function(index, NetID, hookedVeh)
+    local src = source
     local car = NetworkGetEntityFromNetworkId(NetID)
     local state = Entity(car).state.FlatBed
     if not state then return end
@@ -128,19 +129,28 @@ RegisterNetEvent('brazzers-tow:server:syncHook', function(index, NetID, hookedVe
 
     -- if doing a mission, this checks entity for state bag then removes blip
     if index then
-        local group = exports[Config.Phone]:GetGroupByMembers(source)
-        if not group then return end
+        local Player = QBCore.Functions.GetPlayer(src)
+        local group = Player.PlayerData.citizenid
 
-        local members = exports[Config.Phone]:getGroupMembers(group)
-        if not members then return end
+        if Config.RenewedPhone then
+            group = exports[Config.Phone]:GetGroupByMembers(source)
+            if not group then return end
 
-        if isMissionEntity(hookedVeh) then
-            print('State: TRUE')
-            for i=1, #members do
-                if members[i] then
-                    TriggerClientEvent('brazzers-tow:client:sendMissionBlip', members[i], false)
+            local members = exports[Config.Phone]:getGroupMembers(group)
+            if not members then return end
+
+            if isMissionEntity(hookedVeh) then
+                for i=1, #members do
+                    if members[i] then
+                        TriggerClientEvent('brazzers-tow:client:sendMissionBlip', members[i], false)
+                    end
                 end
             end
+            return
+        end
+
+        if isMissionEntity(hookedVeh) then
+            TriggerClientEvent('brazzers-tow:client:sendMissionBlip', src, false)
         end
     end
 end)
@@ -163,13 +173,20 @@ RegisterNetEvent('brazzers-tow:server:forceSignOut', function()
 
         for i=1, #members do
             if members[i] then
+                local groupMembers = QBCore.Functions.GetPlayer(members[i])
                 forceSignOut(members[i], group, true)
+                if Config.ToggleDuty then
+                    groupMembers.Functions.SetJobDuty(false)
+                end
                 return
             end
         end
     end
 
     forceSignOut(src, group, false)
+    if Config.ToggleDuty then
+        Player.Functions.SetJobDuty(false)
+    end
 end)
 
 RegisterNetEvent('brazzers-tow:server:signIn', function(coords)
@@ -215,7 +232,29 @@ RegisterNetEvent('brazzers-tow:server:signIn', function(coords)
     local vehicle, plate = spawnVehicle(src, Config.TowTruck, group, coords)
     if not vehicle or not plate then return TriggerClientEvent('QBCore:Notify', src, "Error try again!", "error") end
 
-    Player.Functions.SetJob(Config.Job, Config.JobGrade)
+    if Config.RenewedPhone then
+        local members = exports[Config.Phone]:getGroupMembers(group)
+        if not members then return end
+    
+        for i=1, #members do
+            if members[i] then
+                local groupMembers = QBCore.Functions.GetPlayer(members[i])
+                if not Config.WhitelistedJob then
+                    groupMembers.Functions.SetJob(Config.Job, Config.JobGrade)
+                end
+                if Config.ToggleDuty then
+                    groupMembers.Functions.SetJobDuty(true)
+                end
+            end
+        end
+    end
+
+    if not Config.WhitelistedJob then
+        Player.Functions.SetJob(Config.Job, Config.JobGrade)
+    end
+    if Config.ToggleDuty then
+        Player.Functions.SetJobDuty(true)
+    end
 
     cachedTow[group] = {
         towtruck = vehicle,
@@ -315,6 +354,7 @@ RegisterNetEvent('brazzers-tow:server:depotVehicle', function(plate, class, netI
     if not members then return end
 
     local size = exports[Config.Phone]:getGroupSize(group)
+    local inGroup = false
 
     for i=1, #members do
         if members[i] then
@@ -328,10 +368,11 @@ RegisterNetEvent('brazzers-tow:server:depotVehicle', function(plate, class, netI
                 end
 
                 if size <= Config.GroupLimit then
-                    moneyEarnings(members[i], class)
+                    if size > 1 then inGroup = true end
+                    moneyEarnings(members[i], class, inGroup)
                 else
                     if exports[Config.Phone]:isGroupLeader(members[i], group) then
-                        moneyEarnings(members[i], class)
+                        moneyEarnings(members[i], class, false)
                     end
                 end
 
@@ -348,10 +389,11 @@ RegisterNetEvent('brazzers-tow:server:depotVehicle', function(plate, class, netI
                 if Config.RepForMissionsOnly and not isMissionEntity(netID) then return end
 
                 if size <= Config.GroupLimit then
-                    metaEarnings(members[i])
+                    if size > 1 then inGroup = true end
+                    metaEarnings(members[i], inGroup)
                 else
                     if exports[Config.Phone]:isGroupLeader(members[i], group) then
-                        metaEarnings(members[i])
+                        metaEarnings(members[i], false)
                     end
                 end
             end
