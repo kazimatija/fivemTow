@@ -5,17 +5,6 @@ local QBCore = exports[Config.Core]:GetCoreObject()
 local inQueue = false
 local blip
 
-local function getRep()
-    local PlayerData = QBCore.Functions.GetPlayerData()
-    local repAmount = PlayerData.metadata[Config.RepName]
-
-    for k, _ in pairs(Config.RepLevels) do
-        if repAmount >= Config.RepLevels[k]['repNeeded'] then
-            return Config.RepLevels[k]['label'], repAmount
-        end
-    end
-end
-
 local function CreateBlip(coords)
     blip = AddBlipForCoord(coords.x, coords.y, coords.z)
     SetBlipScale(blip, 0.7)

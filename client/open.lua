@@ -4,6 +4,17 @@ local blips = {}
 
 -- Functions
 
+function getRep()
+    local PlayerData = QBCore.Functions.GetPlayerData()
+    local repAmount = PlayerData.metadata['jobrep'][Config.RepName]
+
+    for k, _ in pairs(Config.RepLevels) do
+        if repAmount >= Config.RepLevels[k]['repNeeded'] then
+            return Config.RepLevels[k]['label'], repAmount
+        end
+    end
+end
+
 function notification(title, msg, action)
     if Config.NotificationStyle == 'phone' then
         TriggerEvent('qb-phone:client:CustomNotification', title, msg, 'fas fa-user', '#b3e0f2', 5000)
@@ -16,7 +27,7 @@ local function generateCustomClass(entity)
     local model = GetEntityModel(entity)
     for k, _ in pairs(QBCore.Shared.Vehicles) do
         if QBCore.Shared.Vehicles[k]['hash'] == model then
-            return QBCore.Shared.Vehicles[k]['category']
+            return QBCore.Shared.Vehicles[k][Config.SharedTierName]
         end
     end
 end
@@ -104,6 +115,34 @@ RegisterNetEvent('brazzers-tow:client:receiveTowRequest', function(pos, plate, b
             end
         end
     end)
+end)
+
+-- Global Blip
+local mainBlip = nil
+local depotBlip = nil
+
+CreateThread(function()
+    mainBlip = AddBlipForCoord(Config.LaptopCoords.xyz)
+    SetBlipSprite(mainBlip, 68)
+    SetBlipDisplay(mainBlip, 4)
+    SetBlipScale(mainBlip, 0.7)
+    SetBlipAsShortRange(mainBlip, true)
+    SetBlipColour(mainBlip, 5)
+    BeginTextCommandSetBlipName("STRING")
+    AddTextComponentSubstringPlayerName("Tow Lot")
+    EndTextCommandSetBlipName(mainBlip)
+
+    for _, v in pairs(Config.DepotLot) do
+        depotBlip = AddBlipForCoord(v.xyz)
+        SetBlipSprite(depotBlip, 68)
+        SetBlipDisplay(depotBlip, 4)
+        SetBlipScale(depotBlip, 0.7)
+        SetBlipAsShortRange(depotBlip, true)
+        SetBlipColour(depotBlip, 3)
+        BeginTextCommandSetBlipName("STRING")
+        AddTextComponentSubstringPlayerName("Depot Lot")
+        EndTextCommandSetBlipName(depotBlip)
+    end
 end)
 
 AddEventHandler('onResourceStop', function(resource)
