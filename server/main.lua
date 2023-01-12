@@ -382,7 +382,9 @@ RegisterNetEvent('brazzers-tow:server:depotVehicle', function(plate, class, netI
                             endMission(src, group)
                             return
                         end
-                        TriggerClientEvent('brazzers-tow:client:reQueueSystem', src)
+                        if exports[Config.Phone]:isGroupLeader(members[i], group) then
+                            TriggerClientEvent('brazzers-tow:client:reQueueSystem', members[i])
+                        end
                     end
                     return 
                 end
@@ -405,7 +407,14 @@ RegisterNetEvent('brazzers-tow:server:depotVehicle', function(plate, class, netI
             endMission(src, group)
             return
         end
-        TriggerClientEvent('brazzers-tow:client:reQueueSystem', src)
+
+        for i=1, #members do
+            if members[i] then
+                if exports[Config.Phone]:isGroupLeader(members[i], group) then
+                    TriggerClientEvent('brazzers-tow:client:reQueueSystem', members[i])
+                end
+            end
+        end
     end
 end)
 
