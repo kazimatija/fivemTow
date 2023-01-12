@@ -2,12 +2,6 @@ local QBCore = exports[Config.Core]:GetCoreObject()
 
 local blips = {}
 
--- Commands
-
-RegisterCommand('calltow', function() -- call tow command
-    TriggerEvent('brazzers-tow:client:requestTowTruck')
-end)
-
 -- Functions
 
 function notification(title, msg, action)
@@ -35,7 +29,7 @@ function depotVehicle(NetworkID)
     if Config.PayoutType == 'custom' then
         class = generateCustomClass(entity)
     end
-    QBCore.Functions.Progressbar("depot_vehicle", "Sending Vehicle To Depot", 1500, false, true, {
+    QBCore.Functions.Progressbar("depot_vehicle", Config.Lang['progressBar']['depotVehicle'].title, Config.Lang['progressBar']['depotVehicle'].time, false, true, {
         disableMovement = true,
         disableCarMovement = true,
         disableMouse = false,
@@ -55,7 +49,7 @@ RegisterNetEvent("brazzers-tow:client:requestTowTruck", function()
     local vehname = GetDisplayNameFromVehicleModel(GetEntityModel(vehicle)):lower()
 
     TriggerEvent('animations:client:EmoteCommandStart', {"phonecall"})
-    QBCore.Functions.Progressbar("calling_tow", 'Calling Tow', 3500, false, true, {
+    QBCore.Functions.Progressbar("calling_tow", Config.Lang['progressBar']['callingTow'].title, Config.Lang['progressBar']['callingTow'].time, false, true, {
         disableMovement = true,
         disableCarMovement = true,
         disableMouse = false,
@@ -64,7 +58,7 @@ RegisterNetEvent("brazzers-tow:client:requestTowTruck", function()
         TriggerEvent('animations:client:EmoteCommandStart', {"c"})
         TriggerServerEvent("brazzers-tow:server:markForTow", NetworkGetNetworkIdFromEntity(vehicle), vehname, plate)
     end, function() -- Cancel
-        TriggerEvent('DoLongHudText', 'Canceled', 2)
+        TriggerEvent('DoLongHudText', Config.Lang['error'][10], 2)
         TriggerEvent('animations:client:EmoteCommandStart', {"c"})
     end)
 end)
@@ -96,7 +90,7 @@ RegisterNetEvent('brazzers-tow:client:receiveTowRequest', function(pos, vehicle,
         SetBlipColour(radius, colour)
         SetBlipAlpha(radius, radiusAlpha)
         BeginTextCommandSetBlipName('STRING')
-        AddTextComponentString('Tow Request: '..plate)
+        AddTextComponentString(Config.Lang['blip']['towRequest']..''..plate)
         EndTextCommandSetBlipName(blip)
 
         while radiusAlpha ~= 0 do

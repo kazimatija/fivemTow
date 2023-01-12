@@ -170,7 +170,7 @@ function endMission(source, group)
     cachedMission[group] = nil
     currentMission[group] = nil
 
-    notification(src, 'CURRENT', 'You did not auto requeue and must queue up again', 'primary')
+    notification(src, Config.Lang['current'], Config.Lang['primary'][6], 'primary')
     -- Reset Blip
     TriggerClientEvent('brazzers-tow:client:leaveQueue', src, false)
 end
@@ -215,7 +215,7 @@ RegisterNetEvent('brazzers-tow:server:joinQueue', function(isAllowed)
             for i=1, #members do
                 if not members[i] then return end
                 TriggerClientEvent('brazzers-tow:client:queueIndex', members[i], cachedQueue[group].inQueue)
-                notification(members[i], 'CURRENT', 'You have joined the queue', 'primary')
+                notification(members[i], Config.Lang['current'], Config.Lang['primary'][7], 'primary')
             end
         end
 
@@ -242,7 +242,7 @@ RegisterNetEvent('brazzers-tow:server:joinQueue', function(isAllowed)
     }
 
     TriggerClientEvent('brazzers-tow:client:queueIndex', src, cachedQueue[group].inQueue)
-    notification(src, 'CURRENT', 'You have joined the queue', 'primary')
+    notification(src, Config.Lang['current'], Config.Lang['primary'][7], 'primary')
 
     if not Config.UseQueue then
         sendMissionRequest(src)
@@ -284,7 +284,7 @@ RegisterNetEvent('brazzers-tow:server:reQueueSystem', function()
             for i=1, #members do
                 if not members[i] then return end
                 TriggerClientEvent('brazzers-tow:client:queueIndex', members[i], cachedQueue[group].inQueue)
-                notification(members[i], 'CURRENT', 'You have auto requeued!', 'primary')
+                notification(members[i], Config.Lang['current'], Config.Lang['primary'][8], 'primary')
             end
         end
 
@@ -308,7 +308,7 @@ RegisterNetEvent('brazzers-tow:server:reQueueSystem', function()
     }
 
     TriggerClientEvent('brazzers-tow:client:queueIndex', src, cachedQueue[group].inQueue)
-    notification(src, 'CURRENT', 'You have auto requeued!', 'primary')
+    notification(src, Config.Lang['current'], Config.Lang['primary'][8], 'primary')
 
     if not Config.UseQueue then
         sendMissionRequest(src)

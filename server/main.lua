@@ -40,10 +40,10 @@ local function forceSignOut(source, group, resetAll)
         DeleteEntity(NetworkGetEntityFromNetworkId(cachedTow[group].towtruck))
         if Config.DepositRequired then
             Player.Functions.AddMoney('bank', Config.DepositAmount)
-            TriggerClientEvent('QBCore:Notify', src, "You have received your deposit back")
+            TriggerClientEvent('QBCore:Notify', src, Config.Lang['primary'][9])
         end
     else
-        TriggerClientEvent('QBCore:Notify', src, "You did not receive your deposit back", 'error')
+        TriggerClientEvent('QBCore:Notify', src, Config.Lang['error'][13], 'error')
     end
 
     usedPlates[cachedTow[group].plate] = nil
@@ -205,13 +205,13 @@ RegisterNetEvent('brazzers-tow:server:signIn', function(coords)
         group = exports[Config.Phone]:GetGroupByMembers(src) or exports[Config.Phone]:CreateGroup(src, "Tow-"..Player.PlayerData.citizenid)
         local size = exports[Config.Phone]:getGroupSize(group)
 
-        if size > Config.GroupLimit then return TriggerClientEvent('QBCore:Notify', src, "Your group can only have "..Config.GroupLimit..' members in it', "error") end
-        if exports[Config.Phone]:getJobStatus(group) ~= "WAITING" then return TriggerClientEvent('QBCore:Notify', src, "Your group is currently busy doing something else", "error") end
-        if Config.OnlyLeader and not exports[Config.Phone]:isGroupLeader(src, group) then return TriggerClientEvent('QBCore:Notify', src, "You must be the group leader to sign in", "error") end
+        if size > Config.GroupLimit then return TriggerClientEvent('QBCore:Notify', src, Config.Lang['error'][14], "error") end
+        if exports[Config.Phone]:getJobStatus(group) ~= "WAITING" then return TriggerClientEvent('QBCore:Notify', src, Config.Lang['error'][15], "error") end
+        if Config.OnlyLeader and not exports[Config.Phone]:isGroupLeader(src, group) then return TriggerClientEvent('QBCore:Notify', src, Config.Lang['error'][16], "error") end
     end
 
     if not group then return end
-    if cachedTow[group] then return TriggerClientEvent('QBCore:Notify', src, "Your group is already signed in!", "error") end
+    if cachedTow[group] then return TriggerClientEvent('QBCore:Notify', src, Config.Lang['error'][17], "error") end
 
     if Config.DepositRequired then
         local deposit = {
@@ -224,13 +224,13 @@ RegisterNetEvent('brazzers-tow:server:signIn', function(coords)
         elseif deposit.bank >= Config.DepositAmount then
             Player.Functions.RemoveMoney("bank", Config.DepositAmount)
         else
-            TriggerClientEvent('QBCore:Notify', src, 'You need $'..Config.DepositAmount..' to be able to take a tow truck out!', 'error')
+            TriggerClientEvent('QBCore:Notify', src, Config.Lang['error'][18], 'error')
             return
         end
     end
 
     local vehicle, plate = spawnVehicle(src, Config.TowTruck, group, coords)
-    if not vehicle or not plate then return TriggerClientEvent('QBCore:Notify', src, "Error try again!", "error") end
+    if not vehicle or not plate then return TriggerClientEvent('QBCore:Notify', src, Config.Lang['error'][19], "error") end
 
     if Config.RenewedPhone then
         local members = exports[Config.Phone]:getGroupMembers(group)
@@ -303,8 +303,8 @@ RegisterNetEvent("brazzers-tow:server:sendTowRequest", function(info, vehicle, p
         end
     end
    
-    if not Config.RenewedPhone then return TriggerClientEvent('QBCore:Notify', info.Sender, "A driver accepted your tow request") end
-    TriggerClientEvent('qb-phone:client:CustomNotification', info.Sender, "CURRENT", 'A driver accepted your tow request', 'fas fa-map-pin', '#b3e0f2', 7500)
+    if not Config.RenewedPhone then return TriggerClientEvent('QBCore:Notify', info.Sender, Config.Lang['primary'][10]) end
+    TriggerClientEvent('qb-phone:client:CustomNotification', info.Sender, Config.Lang['current'], Config.Lang['primary'][10], 'fas fa-map-pin', '#b3e0f2', 7500)
 end)
 
 RegisterNetEvent('brazzers-tow:server:syncDetach', function(flatbed)
@@ -319,7 +319,7 @@ RegisterNetEvent('brazzers-tow:server:depotVehicle', function(plate, class, netI
 
     if Config.MarkedVehicleOnly then
         local isMarked = isVehicleMarked(netID)
-        if not isMarked then return TriggerClientEvent('QBCore:Notify', src, "This vehicle is not marked for tow", 'error') end
+        if not isMarked then return TriggerClientEvent('QBCore:Notify', src, Config.Lang['error'][20], 'error') end
     end
 
     if DoesEntityExist(NetworkGetEntityFromNetworkId(netID)) then
@@ -364,7 +364,7 @@ RegisterNetEvent('brazzers-tow:server:depotVehicle', function(plate, class, netI
                 TriggerClientEvent('brazzers-tow:client:leaveQueue', members[i], false)
 
                 if size > Config.GroupLimit then
-                    TriggerClientEvent('QBCore:Notify', members[i], "Your group can only have "..Config.GroupLimit..' members in it to reward everyone in the group', "error")
+                    TriggerClientEvent('QBCore:Notify', members[i], Config.Lang['error'][21], "error")
                 end
 
                 if size <= Config.GroupLimit then

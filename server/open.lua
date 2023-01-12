@@ -97,7 +97,7 @@ function moneyEarnings(source, class, inGroup)
     end
 
     Player.Functions.AddMoney('cash', math.ceil(payout))
-    TriggerClientEvent('QBCore:Notify', source, 'You received $'..payout)
+    TriggerClientEvent('QBCore:Notify', source, Config.Lang['primary'][11]..''..payout)
 end
 
 function metaEarnings(source, inGroup)
@@ -117,5 +117,4 @@ function metaEarnings(source, inGroup)
     end
 
     Player.Functions.SetMetaData(Config.RepName, math.ceil((curRep + reward)))
-    TriggerClientEvent('QBCore:Notify', source, 'You received '..reward..' reputation with a total of '..math.ceil((curRep + reward)))
 end

@@ -37,9 +37,9 @@ end
 
 function signIn()
     local coords = getSpawn()
-    if not coords then return QBCore.Functions.Notify("There's a vehicle in the way", 'error', 5000) end
+    if not coords then return QBCore.Functions.Notify(Config.Lang['error'][1], 'error', 5000) end
 
-    if Config.RenewedPhone and not exports[Config.Phone]:hasPhone() then return QBCore.Functions.Notify("You don\'t have a phone", 'error', 5000) end
+    if Config.RenewedPhone and not exports[Config.Phone]:hasPhone() then return QBCore.Functions.Notify(Config.Lang['error'][2], 'error', 5000) end
     if signedIn then return end
 
     TriggerServerEvent('brazzers-tow:server:signIn', coords)
@@ -132,34 +132,34 @@ local function forceSignOut()
     if not signedIn then return end
 
     signedIn = false
-    notification("CURRENT", "You have signed out!", 'primary')
+    notification(Config.Lang['current'], Config.Lang['primary'][4], 'primary')
 end
 
 local function hookVehicle(NetworkID)
     local flatbed = NetworkGetEntityFromNetworkId(NetworkID)
-    if not flatbed then return notification(_, 'Tow truck doesn\'t exist', 'error') end
+    if not flatbed then return notification(_, Config.Lang['error'][3], 'error') end
 
     local target = GetEntityBehindTowTruck(flatbed, -8, 0.7)
-    if not target or target == 0 then return notification(_, 'No vehicle found', 'error') end
+    if not target or target == 0 then return notification(_, Config.Lang['error'][4], 'error') end
 
     local targetModel = GetEntityModel(target)
     local targetClass = GetVehicleClass(target)
     local towTruckDriver = GetPedInVehicleSeat(flatbed, -1)
 
     if (Config.BlacklistedModels[targetModel] or Config.BlacklistedClasses[targetClass]) then
-        return notification(_, 'You cannot tow this type of vehicle', 'error')
+        return notification(_, Config.Lang['error'][5], 'error')
     end
 
     local targetDriver = GetPedInVehicleSeat(target, -1)
-    if targetDriver ~= 0 then return notification(_, 'Vehicle must be empty', 'error') end
+    if targetDriver ~= 0 then return notification(_, Config.Lang['error'][6], 'error') end
 
     if flatbed == target then return end
-    if not isTowVehicle(flatbed) then return notification(_, 'You do not have a tow truck', 'error') end
+    if not isTowVehicle(flatbed) then return notification(_, Config.Lang['error'][7], 'error') end
     if GetEntityType(target) ~= 2 then return end
 
     local state = Entity(flatbed).state.FlatBed
     if not state then return end
-    if state.carAttached then return notification(_, 'There is a vehicle attached already', 'error') end
+    if state.carAttached then return notification(_, Config.Lang['error'][8], 'error') end
 
     local towTruckCoords, targetCoords = GetEntityCoords(flatbed), GetEntityCoords(target)
     local distance = #(targetCoords - towTruckCoords)
@@ -168,35 +168,35 @@ local function hookVehicle(NetworkID)
         TaskTurnPedToFaceCoord(PlayerPedId(), targetCoords, 1.0)
         Wait(1000)
         -- Animation
-        QBCore.Functions.Progressbar("filling_nitrous", "Hooking up vehicle", 2500, false, false, {
+        QBCore.Functions.Progressbar("filling_nitrous", Config.Lang['progressBar']['hookVehicle'].title, Config.Lang['progressBar']['hookVehicle'].time, false, false, {
             disableMovement = true,
             disableCarMovement = false,
             disableMouse = false,
             disableCombat = true,
         }, {}, {}, {}, function()
-            QBCore.Functions.Progressbar("filling_nitrous", "Towing vehicle", 2500, false, false, {
+            QBCore.Functions.Progressbar("filling_nitrous", Config.Lang['progressBar']['towVehicle'].title, Config.Lang['progressBar']['towVehicle'].time, false, false, {
                 disableMovement = true,
                 disableCarMovement = false,
                 disableMouse = false,
                 disableCombat = true,
             }, {}, {}, {}, function()
                 local playerId = GetPlayerServerId(NetworkGetPlayerIndexFromPed(towTruckDriver))
-                if playerId and playerId ~= 0 then return notification(_, 'There cannot be a driver inside the tow truck', 'error') end
+                if playerId and playerId ~= 0 then return notification(_, Config.Lang['error'][9], 'error') end
 
                 attachVehicleToBed(flatbed, target)
                 TriggerServerEvent('brazzers-tow:server:syncHook', true, NetworkGetNetworkIdFromEntity(flatbed), NetworkGetNetworkIdFromEntity(target))
             end, function()
-                notification(_, 'Canceled', 'error')
+                notification(_, Config.Lang['error'][10], 'error')
             end)
         end, function()
-            notification(_, 'Canceled', 'error')
+            notification(_, Config.Lang['error'][10], 'error')
         end)
     end
 end
 
 local function unHookVehicle(NetworkID)
     local flatbed = NetworkGetEntityFromNetworkId(NetworkID)
-    if not flatbed then return notification(_, 'Tow truck doesn\'t exist', 'error') end
+    if not flatbed then return notification(_, Config.Lang['error'][3], 'error') end
 
     local target = FindVehicleAttachedToVehicle(flatbed)
     if not target or target == 0 then return end
@@ -204,31 +204,35 @@ local function unHookVehicle(NetworkID)
 
     local state = Entity(flatbed).state.FlatBed
     if not state then return end
-    if not state.carAttached then return notification(_, 'There is no vehicle attached to the bed', 'error') end
+    if not state.carAttached then return notification(_, Config.Lang['error'][11], 'error') end
 
     TaskTurnPedToFaceEntity(PlayerPedId(), flatbed, 1.0)
     Wait(1000)
     -- Animation
-    QBCore.Functions.Progressbar("untowing_vehicle", "Untowing vehicle", 2500, false, false, {
+    QBCore.Functions.Progressbar("untowing_vehicle", Config.Lang['progressBar']['unTowVehicle'].title, Config.Lang['progressBar']['unTowVehicle'].time, false, false, {
         disableMovement = true,
         disableCarMovement = false,
         disableMouse = false,
         disableCombat = true,
     }, {}, {}, {}, function()
-        QBCore.Functions.Progressbar("unhooking_vehicle", "Unhooking vehicle", 2500, false, false, {
+        QBCore.Functions.Progressbar("unhooking_vehicle", Config.Lang['progressBar']['unHookVehicle'].title, Config.Lang['progressBar']['unHookVehicle'].time, false, false, {
             disableMovement = true,
             disableCarMovement = false,
             disableMouse = false,
             disableCombat = true,
         }, {}, {}, {}, function()
-            if not IsEntityAttachedToEntity(target, flatbed) then return notification(_, 'No vehicle attached', 'error') end
+            if not IsEntityAttachedToEntity(target, flatbed) then return notification(_, Config.Lang['error'][12], 'error') end
             TriggerServerEvent('brazzers-tow:server:syncDetach', NetworkGetNetworkIdFromEntity(flatbed))
         end, function()
-            notification(_, 'Canceled', 'error')
+            notification(_, Config.Lang['error'][10], 'error')
         end)
     end, function()
-        notification(_, 'Canceled', 'error')
+        notification(_, Config.Lang['error'][10], 'error')
     end)
+end
+
+local function callTow()
+    TriggerEvent('brazzers-tow:client:requestTowTruck')
 end
 
 RegisterNetEvent('brazzers-tow:client:syncDetach', function(flatbed)
@@ -257,7 +261,7 @@ RegisterNetEvent('brazzers-tow:client:truckSpawned', function(NetID, plate)
         local vehicle = NetToVeh(NetID)
         exports[Config.Fuel]:SetFuel(vehicle, 100.0)
         TriggerServerEvent("qb-vehiclekeys:server:AcquireVehicleKeys", plate)
-        notification("CURRENT", "You have signed in, vehicle outside", 'primary')
+        notification(Config.Lang['current'], Config.Lang['primary'][5], 'primary')
     end
     signedIn = true
 end)
@@ -278,8 +282,8 @@ CreateThread(function()
             options = {
                 {   
                     name = 'tow_signin_laptop',
-                    icon = 'fas fa-hands',
-                    label = 'Sign In',
+                    icon = Config.Lang['target']['signIn'].icon,
+                    label = Config.Lang['target']['signIn'].title,
                     onSelect = function()
                         signIn()
                     end,
@@ -291,10 +295,10 @@ CreateThread(function()
                 },
                 {   
                     name = 'tow_signout_laptop',
-                    icon = 'fas fa-hands',
-                    label = 'Sign Out',
+                    icon = Config.Lang['target']['signOut'].icon,
+                    label = Config.Lang['target']['signOut'].title,
                     onSelect = function()
-                        signIn()
+                        signOut()
                     end,
                     canInteract = function()
                         if not signedIn then return end
@@ -303,8 +307,8 @@ CreateThread(function()
                 },
                 {   
                     name = 'tow_missionboard_laptop',
-                    icon = 'fas fa-hands',
-                    label = 'View Mission Board',
+                    icon = Config.Lang['target']['missionBoard'].icon,
+                    label = Config.Lang['target']['missionBoard'].title,
                     onSelect = function()
                         viewMissionBoard()
                     end,
@@ -331,8 +335,8 @@ CreateThread(function()
                 action = function()
                     signIn()
                 end,
-                icon = 'fas fa-hands',
-                label = 'Sign In',
+                icon = Config.Lang['target']['signIn'].icon,
+                label = Config.Lang['target']['signIn'].title,
                 canInteract = function()
                     if Config.WhitelistedJob and not isTow() then return end
                     if signedIn then return end
@@ -343,8 +347,8 @@ CreateThread(function()
                 action = function()
                     signOut()
                 end,
-                icon = 'fas fa-hands',
-                label = 'Sign Out',
+                icon = Config.Lang['target']['signOut'].icon,
+                label = Config.Lang['target']['signOut'].title,
                 canInteract = function()
                     if not signedIn then return end
                     return true
@@ -354,8 +358,8 @@ CreateThread(function()
                 action = function()
                     viewMissionBoard()
                 end,
-                icon = 'fas fa-hands',
-                label = 'View Mission Board',
+                icon = Config.Lang['target']['missionBoard'].icon,
+                label = Config.Lang['target']['missionBoard'].title,
                 canInteract = function()
                     if Config.WhitelistedJob and not isTow() then return end
                     if not signedIn then return end
@@ -372,8 +376,8 @@ CreateThread(function()
         local options = {
             {
                 name = 'tow_hook_vehicle',
-                label = 'Hook Vehicle',
-                icon = 'fas fa-car-rear',
+                icon = Config.Lang['target']['hookVehicle'].icon,
+                label = Config.Lang['target']['hookVehicle'].title,
                 onSelect = function(entity)
                     hookVehicle(NetworkGetNetworkIdFromEntity(entity))
                 end,
@@ -393,8 +397,8 @@ CreateThread(function()
             },
             {
                 name = 'tow_unhook_vehicle',
-                label = 'Unhook Vehicle',
-                icon = 'fas fa-car-rear',
+                icon = Config.Lang['target']['unHookVehicle'].icon,
+                label = Config.Lang['target']['unHookVehicle'].title,
                 onSelect = function(entity)
                     unHookVehicle(NetworkGetNetworkIdFromEntity(entity))
                 end,
@@ -411,8 +415,8 @@ CreateThread(function()
             },
             {
                 name = 'tow_depot_vehicle',
-                label = 'Depot Vehicle',
-                icon = 'fas fa-car-rear',
+                icon = Config.Lang['target']['depotVehicle'].icon,
+                label = Config.Lang['target']['depotVehicle'].title,
                 onSelect = function(entity)
                     depotVehicle(NetworkGetNetworkIdFromEntity(entity))
                 end,
@@ -428,6 +432,22 @@ CreateThread(function()
                     return true
                 end
             },
+            {
+                name = 'call_tow_vehicle',
+                icon = Config.Lang['target']['markVehicle'].icon,
+                label = Config.Lang['target']['markVehicle'].title,
+                onSelect = function()
+                    callTow()
+                end,
+                canInteract = function(entity)
+                    if isTow() then return end
+                    local markedState = Entity(entity).state.marked
+                    if markedState and markedState.markedForTow then return end
+                    if not Config.CallTowThroughTarget then return end
+    
+                    return true
+                end
+            },
         }
         exports.ox_target:addGlobalPed(options)
         return
@@ -436,8 +456,8 @@ CreateThread(function()
     exports[Config.Target]:AddGlobalVehicle({
         options = {
             {
-                label = "Hook Vehicle",
-                icon = "fas fa-car-rear",
+                label = Config.Lang['target']['hookVehicle'].title,
+                icon = Config.Lang['target']['hookVehicle'].icon,
                 action = function(entity)
                     hookVehicle(NetworkGetNetworkIdFromEntity(entity))
                 end,
@@ -456,8 +476,8 @@ CreateThread(function()
                 end
             },
             {
-                label = "Unhook Vehicle",
-                icon = "fas fa-car-rear",
+                label = Config.Lang['target']['unHookVehicle'].title,
+                icon = Config.Lang['target']['unHookVehicle'].icon,
                 action = function(entity)
                     unHookVehicle(NetworkGetNetworkIdFromEntity(entity))
                 end,
@@ -473,8 +493,8 @@ CreateThread(function()
                 end
             },
             {
-                label = "Depot Vehicle",
-                icon = "fas fa-car-rear",
+                label = Config.Lang['target']['depotVehicle'].title,
+                icon = Config.Lang['target']['depotVehicle'].icon,
                 action = function(entity)
                     depotVehicle(NetworkGetNetworkIdFromEntity(entity))
                 end,
@@ -486,6 +506,21 @@ CreateThread(function()
                     local markedState = Entity(entity).state.marked
                     if not markedState then return end
                     if not markedState.markedForTow then return end
+
+                    return true
+                end
+            },
+            {
+                label = Config.Lang['target']['markVehicle'].title,
+                icon = Config.Lang['target']['markVehicle'].icon,
+                action = function()
+                    callTow()
+                end,
+                canInteract = function(entity)
+                    if isTow() then return end
+                    local markedState = Entity(entity).state.marked
+                    if markedState and markedState.markedForTow then return end
+                    if not Config.CallTowThroughTarget then return end
 
                     return true
                 end

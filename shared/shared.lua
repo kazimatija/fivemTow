@@ -10,6 +10,7 @@ Config.Menu = 'qb-menu' -- 'ox' or resource name (ex. 'qb-menu')
 Config.NotificationStyle = 'phone' -- 'phone' for Renewed's Phone notifications | 'qbcore' for standard qbcore notifications
 Config.TowTruck = 'flatbed' -- Tow truck model name
 Config.MarkedVehicleOnly = true -- Allow only marked vehicles to be towed and not random vehicles around the street [RECOMMENDED: TRUE]
+Config.CallTowThroughTarget = true -- Adds a global vehicle option to call tow drivers by targeting the vehicle entity
 
 -- PHONE CONFIG --
 Config.RenewedPhone = true -- If you use Renewed's Phone then leave this to true else put false
@@ -50,19 +51,17 @@ Config.RepName = 'trucking' -- Meta data name for reputation
 Config.GroupExtraRep = 0.5 -- 'false' or percentage of total (ex. base rep of 50 + 50 / 0.5 )
 Config.RepLevels = { -- All reputation levels, min rep needed for that rank, and reward per ranking ( I dont recommend removing or adding any (leave a suggestion) )
     ['S'] = { 
-        ['label'] = 'Expert',
-        ['repNeeded'] = 800,
-        ['reward'] = math.random(5, 8),
-        ['multiplier'] = 2.0,
-        ['class'] = 'S',
-        ['chance'] = 5,
+        ['label'] = 'Expert', -- Label Name
+        ['repNeeded'] = 800, -- Amount of rep to be this level
+        ['reward'] = math.random(5, 8), -- Meta reward for turning a vehicle in with this class
+        ['multiplier'] = 2.0, -- Doesn't do nothing right now oops
+        ['chance'] = 5, -- percentage for getting one of these vehicles when at that class level
     },
     ['A'] = { 
         ['label'] = 'Pro',
         ['repNeeded'] = 500,
         ['reward'] = math.random(4, 7),
         ['multiplier'] = 1.5,
-        ['class'] = 'A',
         ['chance'] = 15,
     },
     ['B'] = { 
@@ -70,7 +69,6 @@ Config.RepLevels = { -- All reputation levels, min rep needed for that rank, and
         ['repNeeded'] = 250,
         ['reward'] = math.random(3, 6),
         ['multiplier'] = 1.0,
-        ['class'] = 'B',
         ['chance'] = 35,
     },
     ['C'] = { 
@@ -78,7 +76,6 @@ Config.RepLevels = { -- All reputation levels, min rep needed for that rank, and
         ['repNeeded'] = 20,
         ['reward'] = math.random(2, 5),
         ['multiplier'] = 0.7,
-        ['class'] = 'C',
         ['chance'] = 50,
     },
     ['D'] = { 
@@ -86,7 +83,6 @@ Config.RepLevels = { -- All reputation levels, min rep needed for that rank, and
         ['repNeeded'] = 0,
         ['reward'] = math.random(1, 4),
         ['multiplier'] = 0.3,
-        ['class'] = 'D',
         ['chance'] = 100,
     },
 }
@@ -173,4 +169,71 @@ Config.BlacklistedModels = {
 Config.BlacklistedClasses = {
     [15] = true,
     [16] = true,
+}
+
+Config.Lang = {
+    ['current'] = 'CURRENT',
+    ['missionRequest'] = {title = 'JOB OFFER AI', desc = 'Incoming Tow Request', icon = 'fas fa-map-pin', color = '#b3e0f2'},
+    ['missionBoard'] = {
+        ['header'] = {label = 'Tow Truck Missions', repLabel = 'x Reputation', icon = 'fas fa-building'},
+        ['firstMenu'] = {title = 'Start Mission', icon = 'fas fa-briefcase', desc = 'Queue into missions dispatched by Bon Joe'},
+        ['secondMenu'] = {title = 'Leave Queue', icon = 'fas fa-briefcase'},
+        ['thirdMenu'] = {title = 'Close', icon = 'fas fa-angle-left'},
+    },
+    ['primary'] = {
+        [1] = 'Vehicle location has been marked',
+        [2] = 'Tow the vehicle back to the lot',
+        [3] = 'Your group was removed from the queue',
+        [4] = 'You have signed out!',
+        [5] = 'You have signed in, vehicle outside',
+        [6] = 'You did not auto requeue and must queue up again',
+        [7] = 'You have joined the queue',
+        [8] = 'You have auto requeued!',
+        [9] = 'You have received your deposit back',
+        [10] = 'A driver accepted your tow request',
+        [11] = 'You received $',
+    },
+    ['error'] = {
+        [1] = 'There\'s a vehicle in the way',
+        [2] = 'You don\'t have a phone',
+        [3] = 'Tow truck doesn\'t exist',
+        [4] = 'No vehicle found',
+        [5] = 'You cannot tow this type of vehicle',
+        [6] = 'Vehicle must be empty',
+        [7] = 'You do not have a tow truck',
+        [8] = 'There is a vehicle attached already',
+        [9] = 'There cannot be a driver inside the tow truck',
+        [10] = 'Canceled',
+        [11] = 'There is no vehicle attached to the bed',
+        [12] = 'No vehicle attached',
+        [13] = 'You did not receive your deposit back',
+        [14] = 'Your group can only have '..Config.GroupLimit..' members in it',
+        [15] = 'Your group is currently busy doing something else',
+        [16] = 'You must be the group leader to sign in',
+        [17] = 'Your group is already signed in!',
+        [18] = 'You need $'..Config.DepositAmount..' to be able to take a tow truck out!',
+        [19] = 'Error try again!',
+        [20] = 'This vehicle is not marked for tow',
+        [21] = 'Your group can only have '..Config.GroupLimit..' members in it to reward everyone in the group',
+    },
+    ['progressBar'] = {
+        ['hookVehicle'] = {title = 'Hooking up vehicle', time = 2500},
+        ['towVehicle'] = {title = 'Towing vehicle', time = 2500},
+        ['unTowVehicle'] = {title = 'Untowing vehicle', time = 2500},
+        ['unHookVehicle'] = {title = 'Unhooking Vehicle', time = 2500},
+        ['depotVehicle'] = {title = 'Sending Vehicle To Depot', time = 1500},
+        ['callingTow'] = {title = 'Calling Tow', time = 3500},
+    },
+    ['target'] = {
+        ['signIn'] = {title = 'Sign In', icon = 'fas fa-hands'},
+        ['signOut'] = {title = 'Sign Out', icon = 'fas fa-hands'},
+        ['missionBoard'] = {title = 'View Mission Board', icon = 'fas fa-hands'},
+        ['hookVehicle'] = {title = 'Hook Vehicle', icon = 'fas fa-car-rear'},
+        ['unHookVehicle'] = {title = 'Unhook Vehicle', icon = 'fas fa-car-rear'},
+        ['depotVehicle'] = {title = 'Depot Vehicle', icon = 'fas fa-car-rear'},
+        ['markVehicle'] = {title = 'Call Tow', icon = 'fas fa-hands'}
+    },
+    ['blip'] = {
+        ['towRequest'] = 'Tow Request: ',
+    },
 }

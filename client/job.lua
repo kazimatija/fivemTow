@@ -54,33 +54,33 @@ local function doCarDamage(vehicle)
 end
 
 function viewMissionBoard()
-    local isSignedIn = false
-    --if exports['brazzers-tow']:isSignedIn() then isSignedIn = false end
-    local label = 'Tow Truck Missions'
+    local isSignedIn = true
+    if exports['brazzers-tow']:isSignedIn() then isSignedIn = false end
+    local label = Config.Lang['missionBoard']['header'].label
     if Config.AllowRep then
         local repLevel, repAmount = getRep()
-        label = repLevel..' | '..repAmount..'x Reputation'
+        label = repLevel..' | '..repAmount..''..Config.Lang['missionBoard']['header'].repLabel
     end
     QBCore.Functions.TriggerCallback('brazzers-tow:server:isOnMission', function(inQueue)
         if Config.Menu == 'ox' then
             local menu = {}
             menu[#menu+1] = {
-                title = 'Start Mission',
-                icon = "fas fa-briefcase",
-                description = 'Queue into missions dispatched by Bon Joe',
+                title = Config.Lang['missionBoard']['firstMenu'].title,
+                icon = Config.Lang['missionBoard']['firstMenu'].icon,
+                description = Config.Lang['missionBoard']['firstMenu'].desc,
                 event = "brazzers-tow:client:joinQueue",
                 disabled = isSignedIn,
             }
             if inQueue then
                 menu[#menu+1] = {
-                    title = 'Leave Queue',
-                    icon = "fas fa-briefcase",
+                    title = Config.Lang['missionBoard']['secondMenu'].title,
+                    icon = Config.Lang['missionBoard']['secondMenu'].icon,
                     serverEvent = "brazzers-tow:server:leaveQueue",
                 }
             end
             lib.registerContext({
                 id = 'brazzers-tow:mainMenu',
-                icon = "fas fa-building",
+                icon = Config.Lang['missionBoard']['header'].icon,
                 title = label,
                 options = menu
             })
@@ -90,22 +90,22 @@ function viewMissionBoard()
                 {
                     header = label,
                     isMenuHeader = true,
-                    icon = "fas fa-building",
+                    icon = Config.Lang['missionBoard']['header'].icon,
                 },
             }
             menu[#menu+1] = {
-                header = 'Start Mission',
+                header = Config.Lang['missionBoard']['firstMenu'].title,
                 isMenuHeader = isSignedIn,
-                txt = 'Queue into missions dispatched by Bon Joe',
-                icon = "fas fa-briefcase",
+                txt = Config.Lang['missionBoard']['firstMenu'].desc,
+                icon = Config.Lang['missionBoard']['firstMenu'].icon,
                 params = {
                     event = "brazzers-tow:client:joinQueue",
                 }
             }
             if inQueue then
                 menu[#menu+1] = {
-                    header = 'Leave Queue',
-                    icon = "fas fa-briefcase",
+                    header = Config.Lang['missionBoard']['secondMenu'].title,
+                    icon = Config.Lang['missionBoard']['secondMenu'].icon,
                     params = {
                         isServer = true,
                         event = "brazzers-tow:server:leaveQueue",
@@ -113,8 +113,8 @@ function viewMissionBoard()
                 }
             end
             menu[#menu+1] = {
-                header = "Close",
-                icon = 'fas fa-angle-left',
+                header = Config.Lang['missionBoard']['thirdMenu'].title,
+                icon = Config.Lang['missionBoard']['thirdMenu'].icon,
                 params = {
                     event = "qb-menu:client:closeMenu"
                 }
@@ -125,7 +125,7 @@ function viewMissionBoard()
 end
 
 RegisterNetEvent('brazzers-tow:client:joinQueue', function()
-    --if not exports['brazzers-tow']:isSignedIn() then return end
+    if not exports['brazzers-tow']:isSignedIn() then return end
     TriggerServerEvent('brazzers-tow:server:joinQueue', true)
 end)
 
@@ -137,7 +137,7 @@ RegisterNetEvent('brazzers-tow:client:setCarDamage', function(netID, plate)
     Wait(1000)
     if netID and plate then
         local vehicle = NetToVeh(netID)
-        if Config.Fuel ~= 'ox' then exports['rush-fuel']:SetFuel(vehicle, 0.0) end
+        if Config.Fuel ~= 'ox' then exports[Config.Fuel]:SetFuel(vehicle, 0.0) end
         doCarDamage(vehicle)
     end
 end)
@@ -145,12 +145,12 @@ end)
 RegisterNetEvent('brazzers-tow:client:sendMissionBlip', function(coords)
     if coords then
         CreateBlip(coords)
-        notification('CURRENT', 'Vehicle location has been marked', 'primary')
+        notification(Config.Lang['current'], Config.Lang['primary'][1], 'primary')
         return
     end
 
     RemoveBlip(blip)
-    notification('CURRENT', 'Tow the vehicle back to the lot', 'primary')
+    notification(Config.Lang['current'], Config.Lang['primary'][2], 'primary')
 end)
 
 RegisterNetEvent('brazzers-tow:client:reQueueSystem', function()
@@ -160,16 +160,12 @@ end)
 RegisterNetEvent('brazzers-tow:client:leaveQueue', function(notify)
     RemoveBlip(blip)
     if notify then
-        notification('CURRENT', 'Your group was removed from the queue', 'primary')
+        notification(Config.Lang['current'], Config.Lang['primary'][3], 'primary')
     end
 end)
 
 RegisterNetEvent('brazzers-tow:client:sendMissionRequest', function()
-    local success = exports[Config.Phone]:PhoneNotification("JOB OFFER AI", 'Incoming Tow Request', 'fas fa-map-pin', '#b3e0f2', "NONE", 'fas fa-check-circle', 'fas fa-times-circle')
+    local success = exports[Config.Phone]:PhoneNotification(Config.Lang['missionRequest'].title, Config.Lang['missionRequest'].desc, Config.Lang['missionRequest'].icon, Config.Lang['missionRequest'].color, "NONE", 'fas fa-check-circle', 'fas fa-times-circle')
     if not success then return TriggerServerEvent('brazzers-tow:server:sendMissionRequest', false) end
     TriggerServerEvent('brazzers-tow:server:sendMissionRequest', true)
-end)
-
-RegisterCommand('testtow', function()
-    viewMissionBoard()
 end)
