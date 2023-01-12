@@ -358,6 +358,24 @@ CreateThread(function()
                     return true
                 end
             },
+            {
+                label = "Depot Vehicle",
+                icon = "fas fa-car-rear",
+                action = function(entity)
+                    depotVehicle(NetworkGetNetworkIdFromEntity(entity))
+                end,
+                canInteract = function(entity)
+                    if not isTow() then return end
+                    if not inZone() then return end
+                    local state = Entity(entity).state.FlatBed
+                    if state and state.carAttached then return end
+                    local markedState = Entity(entity).state.marked
+                    if not markedState then return end
+                    if not markedState.markedForTow then return end
+
+                    return true
+                end
+            },
         },
         distance = 1.5
     })
