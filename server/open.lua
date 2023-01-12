@@ -86,6 +86,7 @@ function createVehicle(source)
 end
 
 function moneyEarnings(source, class)
+    if not class then class = 'D' end
     print('Vehicle Class: '..class)
     local Player = QBCore.Functions.GetPlayer(source)
     local payout = Config.Payout[Config.PayoutType][class]['payout']
