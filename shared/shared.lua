@@ -21,7 +21,9 @@ Config.JobGrade = 0 -- grade level to assign the player when signing in
 Config.DepositRequired = true -- If a deposit is required to take out a vehicle
 Config.DepositAmount = 100 -- If above is true, then set the amount here
 
-Config.DepotLot = vector3(-142.59, -1173.80, 23.76) -- Location
+Config.DepotLot = { -- Location
+    vector3(-142.59, -1173.80, 23.76),
+}
 Config.AllowTowOnly = false -- set this to true if you want to only allow the tow job to use hook/ unhook vehicle on the tow truck
 Config.BlipLength = 5 -- Amount of time in minutes a calls blip stays on the map
 
@@ -119,14 +121,48 @@ Config.Payout = {
 }
 
 Config.Locations = {
-    [1] = {
-        ['coords'] = vector4(275.33, -2067.09, 16.53, 290.96),
-        ['isBusy'] = false,
-    },
+    [1] = { ['coords'] = vector4(275.33, -2067.09, 16.53, 290.96), ['isBusy'] = false },
+    [2] = { ['coords'] = vector4(-228.29, -1692.08, 33.18, 181.56), ['isBusy'] = false },
+    [3] = { ['coords'] = vector4(115.92, -1936.77, 20.02, 19.78), ['isBusy'] = false },
+    [4] = { ['coords'] = vector4(1395.46, -1533.2, 56.96, 46.1), ['isBusy'] = false },
+    [5] = { ['coords'] = vector4(1120.71, -783.52, 57.11, 359.17), ['isBusy'] = false },
+    [6] = { ['coords'] = vector4(1274.56, -367.65, 68.45, 54.21), ['isBusy'] = false },
+    [7] = { ['coords'] = vector4(550.93, -145.62, 57.84, 91.59), ['isBusy'] = false },
+    [8] = { ['coords'] = vector4(-94.98, 82.26, 70.95, 330.24), ['isBusy'] = false },
+    [9] = { ['coords'] = vector4(-1184.98, -930.07, 2.16, 210.79), ['isBusy'] = false },
+    [10] = { ['coords'] = vector4(-1274.67, -1155.28, 5.62, 114.63), ['isBusy'] = false },
+    [11] = { ['coords'] = vector4(-1236.97, -1228.85, 6.24, 292.03), ['isBusy'] = false },
+    [12] = { ['coords'] = vector4(-576.53, -1005.13, 21.57, 90.64), ['isBusy'] = false },
+    [13] = { ['coords'] = vector4(-232.78, -1481.73, 30.77, 141.49), ['isBusy'] = false },
+    [14] = { ['coords'] = vector4(360.92, 293.76, 102.91, 248.97), ['isBusy'] = false },
+    [15] = { ['coords'] = vector4(-1003.28, 380.81, 71.43, 57.75), ['isBusy'] = false },
+    [16] = { ['coords'] = vector4(-1817.64, 772.42, 135.86, 40.79), ['isBusy'] = false },
+    [17] = { ['coords'] = vector4(-2967.7, 74.12, 10.85, 105.44), ['isBusy'] = false },
+    [18] = { ['coords'] = vector4(-3051.29, 446.32, 5.74, 38.7), ['isBusy'] = false },
+    [19] = { ['coords'] = vector4(-2568.12, 2344.62, 32.47, 334.55), ['isBusy'] = false },
+    [20] = { ['coords'] = vector4(-2201.97, 2288.24, 32.34, 292.14), ['isBusy'] = false },
+    [21] = { ['coords'] = vector4(-1133.66, 2695.75, 18.2, 338.79), ['isBusy'] = false },
+    [22] = { ['coords'] = vector4(610.7, 2723.08, 41.28, 349.04), ['isBusy'] = false },
+    [23] = { ['coords'] = vector4(1136.63, 2653.84, 37.4, 238.16), ['isBusy'] = false },
+    [24] = { ['coords'] = vector4(1874.97, 2674.25, 45.1, 247.19), ['isBusy'] = false },
+    [25] = { ['coords'] = vector4(1814.81, 3719.76, 33.13, 43.63), ['isBusy'] = false },
+    [26] = { ['coords'] = vector4(1976.29, 3835.86, 31.43, 183.28), ['isBusy'] = false },
+    [27] = { ['coords'] = vector4(2375.26, 3889.33, 35.02, 309.63), ['isBusy'] = false },
+    [28] = { ['coords'] = vector4(1989.71, 4652.34, 40.51, 57.03), ['isBusy'] = false },
+    [29] = { ['coords'] = vector4(1638.68, 4836.84, 41.41, 12.89), ['isBusy'] = false },
+    [30] = { ['coords'] = vector4(2493.77, 5615.31, 44.26, 23.68), ['isBusy'] = false },
+    [31] = { ['coords'] = vector4(192.66, 6634.04, 30.98, 15.1), ['isBusy'] = false },
+    [32] = { ['coords'] = vector4(33.22, 6608.59, 31.86, 77.17), ['isBusy'] = false },
+    [33] = { ['coords'] = vector4(-74.12, 6569.52, 30.88, 198.72), ['isBusy'] = false },
+    [34] = { ['coords'] = vector4(-154.68, 6356.69, 30.88, 239.23), ['isBusy'] = false },
+    [35] = { ['coords'] = vector4(-339.48, 6018.2, 30.7, 315.75), ['isBusy'] = false },
 }
 
 Config.BlacklistedModels = {
+    [`stockade`] = true,
 }
 
 Config.BlacklistedClasses = {
+    [15] = true,
+    [16] = true,
 }
