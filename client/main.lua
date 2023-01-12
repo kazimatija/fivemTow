@@ -28,10 +28,10 @@ function inZone()
     local ped = PlayerPedId()
     local pedPos = GetEntityCoords(ped)
 
-    local depotLot = Config.DepotLot
-
-    if (#(pedPos - depotLot) <= 20.0) then
-        return true
+    for _, v in pairs(Config.DepotLot) do
+        if (#(pedPos - v.xyz) <= 20.0) then
+            return true
+        end
     end
 end
 
