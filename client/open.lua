@@ -14,11 +14,7 @@ function notification(title, msg, action)
     if Config.NotificationStyle == 'phone' then
         TriggerEvent('qb-phone:client:CustomNotification', title, msg, 'fas fa-user', '#b3e0f2', 5000)
     elseif Config.NotificationStyle == 'qbcore' then
-        if title then
-            QBCore.Functions.Notify(title..': '..msg, action, 5000)
-        else
-            QBCore.Functions.Notify(msg, action, 5000)
-        end
+        QBCore.Functions.Notify(msg, action, 5000)
     end
 end
 
@@ -31,7 +27,7 @@ local function generateCustomClass(entity)
     end
 end
 
-local function depotVehicle(NetworkID)
+function depotVehicle(NetworkID)
     local entity = NetworkGetEntityFromNetworkId(NetworkID)
     local plate = QBCore.Functions.GetPlate(entity)
     local class = GetVehicleClass(entity)
@@ -114,26 +110,6 @@ RegisterNetEvent('brazzers-tow:client:receiveTowRequest', function(pos, vehicle,
             end
         end
     end)
-end)
-
--- Threads
-
-CreateThread(function()
-    exports[Config.Target]:AddGlobalVehicle({
-        options = {
-            {
-                label = "Depot Vehicle",
-                icon = "fas fa-car-rear",
-                action = function(entity)
-                    depotVehicle(NetworkGetNetworkIdFromEntity(entity))
-                end,
-                canInteract = function(entity)
-                    return isTow() and inZone()
-                end
-            }
-        },
-        distance = 1.5
-    })
 end)
 
 AddEventHandler('onResourceStop', function(resource)
