@@ -11,6 +11,7 @@ Config.NotificationStyle = 'phone' -- 'phone' for Renewed's Phone notifications 
 Config.TowTruck = 'flatbed' -- Tow truck model name
 Config.MarkedVehicleOnly = true -- Allow only marked vehicles to be towed and not random vehicles around the street [RECOMMENDED: TRUE]
 Config.CallTowThroughTarget = true -- Adds a global vehicle option to call tow drivers by targeting the vehicle entity
+Config.SharedTierName = 'tier' -- Name of QBCore.Shared.Vehicles that targets the classes. For me personally I use 'category' but I know others may use 'tier' because of jl-laptop
 
 -- PHONE CONFIG --
 Config.RenewedPhone = true -- If you use Renewed's Phone then leave this to true else put false
@@ -27,6 +28,7 @@ Config.DepositAmount = 100 -- If above is true, then set the amount here
 
 Config.DepotLot = { -- Location
     vector3(-142.59, -1173.80, 23.76),
+    vector3(1014.98, -2326.57, 30.51),
 }
 Config.AllowTowOnly = false -- set this to true if you want to only allow the tow job to use hook/ unhook vehicle on the tow truck
 Config.BlipLength = 5 -- Amount of time in minutes a calls blip stays on the map
@@ -41,20 +43,20 @@ Config.VehicleSpawns = { -- Vehicle spawns for the tow truck
 
 -- QUEUE CONFIG --
 Config.UseQueue = true -- Set to false if you want to receive contracts instantly when requested
-Config.QueueTimer = 0 -- Amount of time to wait in queue in minutes for a AI mission (above must be true)
+Config.QueueTimer = 5 -- Amount of time to wait in queue in minutes for a AI mission (above must be true)
 Config.ReQueue = true -- Do you want to auto requeue when completing a mission (this is basically if you want to auto get another job after completing one so you don't have to go back to the laptop and request)
 
 -- REPUTATION CONFIG --
 Config.AllowRep = true -- Do you want reputation system in general for this ? 
 Config.RepForMissionsOnly = true -- Only earn reputation for mission vehicles or allow rep earnings for all tows
-Config.RepName = 'trucking' -- Meta data name for reputation
+Config.RepName = 'tow' -- Meta data name for reputation
 Config.GroupExtraRep = 0.5 -- 'false' or percentage of total (ex. base rep of 50 + 50 / 0.5 )
 Config.RepLevels = { -- All reputation levels, min rep needed for that rank, and reward per ranking ( I dont recommend removing or adding any (leave a suggestion) )
     ['S'] = { 
         ['label'] = 'Expert', -- Label Name
         ['repNeeded'] = 800, -- Amount of rep to be this level
         ['reward'] = math.random(5, 8), -- Meta reward for turning a vehicle in with this class
-        ['multiplier'] = 2.0, -- Doesn't do nothing right now oops
+        ['multiplier'] = 2.0, -- Multiplier to receive extra money (ex $50 + $50 * 2.0)
         ['chance'] = 5, -- percentage for getting one of these vehicles when at that class level
     },
     ['A'] = { 
