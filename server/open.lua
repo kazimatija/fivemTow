@@ -71,7 +71,6 @@ function createVehicle(source)
     Wait(0)
 
     if not class then return createVehicle(source) end
-    print(class)
 
     for k, v in pairs(QBCore.Shared.Vehicles) do
         if v['category'] and v['category'] == class then
@@ -81,31 +80,42 @@ function createVehicle(source)
     if vehicle == 0 then return false end
     local index = vehicle[math.random(1, #vehicle)]
     local vehicle = QBCore.Shared.Vehicles[index]['model']
-    print(vehicle)
+    if Config.Debug then print('Creating Vehicle: '..vehicle) end
     return vehicle
 end
 
-function moneyEarnings(source, class)
+function moneyEarnings(source, class, inGroup)
     if not class then class = 'D' end
-    print('Vehicle Class: '..class)
+    if Config.Debug then print('Vehicle Class: '..class) end
     local Player = QBCore.Functions.GetPlayer(source)
     local payout = Config.Payout[Config.PayoutType][class]['payout']
     if not payout then payout = Config.BasePay end
     
-    if Config.AllowRep then
-        local extra = getMultiplier(source)
-        payout += extra
+    if Config.GroupExtraMoney and inGroup then
+        local groupExtra = Config.GroupExtraMoney
+        payout = payout + (math.ceil(payout * groupExtra))
     end
 
     Player.Functions.AddMoney('cash', math.ceil(payout))
     TriggerClientEvent('QBCore:Notify', source, 'You received $'..payout)
 end
 
-function metaEarnings(source)
+function metaEarnings(source, inGroup)
     local Player = QBCore.Functions.GetPlayer(source)
 
     local curRep = Player.PlayerData.metadata[Config.RepName]
     local reward = getReward(source)
-    Player.Functions.SetMetaData(Config.RepName, (curRep + reward))
-    TriggerClientEvent('QBCore:Notify', source, 'You received '..reward..' reputation with a total of '..(curRep + reward))
+
+    if Config.AllowRep then
+        local extra = getMultiplier(source)
+        reward += extra
+    end
+
+    if Config.GroupExtraRep and inGroup then
+        local groupExtra = Config.GroupExtraRep
+        reward = reward + (math.ceil(reward * groupExtra))
+    end
+
+    Player.Functions.SetMetaData(Config.RepName, math.ceil((curRep + reward)))
+    TriggerClientEvent('QBCore:Notify', source, 'You received '..reward..' reputation with a total of '..math.ceil((curRep + reward)))
 end
