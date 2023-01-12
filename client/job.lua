@@ -109,12 +109,6 @@ RegisterNetEvent('brazzers-tow:client:queueIndex', function(value)
     inQueue = value
 end)
 
-RegisterNetEvent('brazzers-tow:client:sendCall', function()
-    local success = exports[Config.Phone]:PhoneNotification("JOB OFFER", 'Incoming Tow Request', 'fas fa-map-pin', '#b3e0f2', "NONE", 'fas fa-check-circle', 'fas fa-times-circle')
-    if not success then return end
-    TriggerServerEvent("brazzers-tow:server:sendTowRequest", info, vehicle, plate, pos)
-end)
-
 RegisterNetEvent('brazzers-tow:client:setCarDamage', function(netID, plate)
     Wait(1000)
     if netID and plate then
