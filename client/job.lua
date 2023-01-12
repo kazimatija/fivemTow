@@ -61,67 +61,65 @@ function viewMissionBoard()
         local repLevel, repAmount = getRep()
         label = repLevel..' | '..repAmount..''..Config.Lang['missionBoard']['header'].repLabel
     end
-    QBCore.Functions.TriggerCallback('brazzers-tow:server:isOnMission', function(inQueue)
-        if Config.Menu == 'ox' then
-            local menu = {}
+    if Config.Menu == 'ox' then
+        local menu = {}
+        menu[#menu+1] = {
+            title = Config.Lang['missionBoard']['firstMenu'].title,
+            icon = Config.Lang['missionBoard']['firstMenu'].icon,
+            description = Config.Lang['missionBoard']['firstMenu'].desc,
+            event = "brazzers-tow:client:joinQueue",
+            disabled = isSignedIn,
+        }
+        if inQueue then
             menu[#menu+1] = {
-                title = Config.Lang['missionBoard']['firstMenu'].title,
-                icon = Config.Lang['missionBoard']['firstMenu'].icon,
-                description = Config.Lang['missionBoard']['firstMenu'].desc,
-                event = "brazzers-tow:client:joinQueue",
-                disabled = isSignedIn,
+                title = Config.Lang['missionBoard']['secondMenu'].title,
+                icon = Config.Lang['missionBoard']['secondMenu'].icon,
+                serverEvent = "brazzers-tow:server:leaveQueue",
             }
-            if inQueue then
-                menu[#menu+1] = {
-                    title = Config.Lang['missionBoard']['secondMenu'].title,
-                    icon = Config.Lang['missionBoard']['secondMenu'].icon,
-                    serverEvent = "brazzers-tow:server:leaveQueue",
-                }
-            end
-            lib.registerContext({
-                id = 'brazzers-tow:mainMenu',
-                icon = Config.Lang['missionBoard']['header'].icon,
-                title = label,
-                options = menu
-            })
-            lib.showContext('brazzers-tow:mainMenu')
-        else
-            local menu = {
-                {
-                    header = label,
-                    isMenuHeader = true,
-                    icon = Config.Lang['missionBoard']['header'].icon,
-                },
-            }
-            menu[#menu+1] = {
-                header = Config.Lang['missionBoard']['firstMenu'].title,
-                isMenuHeader = isSignedIn,
-                txt = Config.Lang['missionBoard']['firstMenu'].desc,
-                icon = Config.Lang['missionBoard']['firstMenu'].icon,
-                params = {
-                    event = "brazzers-tow:client:joinQueue",
-                }
-            }
-            if inQueue then
-                menu[#menu+1] = {
-                    header = Config.Lang['missionBoard']['secondMenu'].title,
-                    icon = Config.Lang['missionBoard']['secondMenu'].icon,
-                    params = {
-                        isServer = true,
-                        event = "brazzers-tow:server:leaveQueue",
-                    }
-                }
-            end
-            menu[#menu+1] = {
-                header = Config.Lang['missionBoard']['thirdMenu'].title,
-                icon = Config.Lang['missionBoard']['thirdMenu'].icon,
-                params = {
-                    event = "qb-menu:client:closeMenu"
-                }
-            }
-            exports[Config.Menu]:openMenu(menu)
         end
-    end)
+        lib.registerContext({
+            id = 'brazzers-tow:mainMenu',
+            icon = Config.Lang['missionBoard']['header'].icon,
+            title = label,
+            options = menu
+        })
+        lib.showContext('brazzers-tow:mainMenu')
+    else
+        local menu = {
+            {
+                header = label,
+                isMenuHeader = true,
+                icon = Config.Lang['missionBoard']['header'].icon,
+            },
+        }
+        menu[#menu+1] = {
+            header = Config.Lang['missionBoard']['firstMenu'].title,
+            isMenuHeader = isSignedIn,
+            txt = Config.Lang['missionBoard']['firstMenu'].desc,
+            icon = Config.Lang['missionBoard']['firstMenu'].icon,
+            params = {
+                event = "brazzers-tow:client:joinQueue",
+            }
+        }
+        if inQueue then
+            menu[#menu+1] = {
+                header = Config.Lang['missionBoard']['secondMenu'].title,
+                icon = Config.Lang['missionBoard']['secondMenu'].icon,
+                params = {
+                    isServer = true,
+                    event = "brazzers-tow:server:leaveQueue",
+                }
+            }
+        end
+        menu[#menu+1] = {
+            header = Config.Lang['missionBoard']['thirdMenu'].title,
+            icon = Config.Lang['missionBoard']['thirdMenu'].icon,
+            params = {
+                event = "qb-menu:client:closeMenu"
+            }
+        }
+        exports[Config.Menu]:openMenu(menu)
+    end
 end
 
 RegisterNetEvent('brazzers-tow:client:joinQueue', function()

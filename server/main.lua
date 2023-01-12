@@ -274,7 +274,7 @@ RegisterNetEvent('brazzers-tow:server:markForTow', function(netID, vehName, plat
         local Employees = QBCore.Functions.GetPlayer(v)
         if Employees then
             if Employees.PlayerData.job.name == Config.Job and Employees.PlayerData.job.onduty then
-                if not Config.RenewedPhone then return TriggerClientEvent('brazzers-tow:client:receiveTowRequest', Employees.PlayerData.source, coords, vehName, plate, calls) end
+                if not Config.RenewedPhone then return TriggerClientEvent('brazzers-tow:client:receiveTowRequest', Employees.PlayerData.source, coords, plate, calls) end
 
                 local info = {Receiver = Employees, Sender = src}
                 local group = exports[Config.Phone]:GetGroupByMembers(Employees.PlayerData.source)
@@ -299,7 +299,7 @@ RegisterNetEvent("brazzers-tow:server:sendTowRequest", function(info, vehicle, p
 
     for i=1, #members do
         if members[i] then
-            TriggerClientEvent('brazzers-tow:client:receiveTowRequest', members[i], pos, vehicle, plate, calls) -- SEND BLIP
+            TriggerClientEvent('brazzers-tow:client:receiveTowRequest', members[i], pos, plate, calls) -- SEND BLIP
         end
     end
    

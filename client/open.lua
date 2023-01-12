@@ -14,7 +14,7 @@ end
 
 local function generateCustomClass(entity)
     local model = GetEntityModel(entity)
-    for k, v in pairs(QBCore.Shared.Vehicles) do
+    for k, _ in pairs(QBCore.Shared.Vehicles) do
         if QBCore.Shared.Vehicles[k]['hash'] == model then
             return QBCore.Shared.Vehicles[k]['category']
         end
@@ -69,7 +69,7 @@ RegisterNetEvent("brazzers-tow:client:sendTowRequest", function(info, vehicle, p
     TriggerServerEvent("brazzers-tow:server:sendTowRequest", info, vehicle, plate, pos)
 end)
 
-RegisterNetEvent('brazzers-tow:client:receiveTowRequest', function(pos, vehicle, plate, blipId)
+RegisterNetEvent('brazzers-tow:client:receiveTowRequest', function(pos, plate, blipId)
     CreateThread(function()
         local alpha = 255
         local blip = nil
@@ -96,7 +96,7 @@ RegisterNetEvent('brazzers-tow:client:receiveTowRequest', function(pos, vehicle,
         while radiusAlpha ~= 0 do
             Wait(Config.BlipLength * 1000)
             radiusAlpha = radiusAlpha - 1
-            SetBlipAlpha(radius, radiusAlpha)	
+            SetBlipAlpha(radius, radiusAlpha)
             if radiusAlpha == 0 then
                 RemoveBlip(radius)
                 RemoveBlip(blip)

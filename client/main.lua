@@ -1,7 +1,6 @@
 local QBCore = exports[Config.Core]:GetCoreObject()
 
 local signedIn = false
-local CachedNet = nil
 
 -- Functions
 
@@ -137,29 +136,29 @@ end
 
 local function hookVehicle(NetworkID)
     local flatbed = NetworkGetEntityFromNetworkId(NetworkID)
-    if not flatbed then return notification(_, Config.Lang['error'][3], 'error') end
+    if not flatbed then return notification(false, Config.Lang['error'][3], 'error') end
 
     local target = GetEntityBehindTowTruck(flatbed, -8, 0.7)
-    if not target or target == 0 then return notification(_, Config.Lang['error'][4], 'error') end
+    if not target or target == 0 then return notification(false, Config.Lang['error'][4], 'error') end
 
     local targetModel = GetEntityModel(target)
     local targetClass = GetVehicleClass(target)
     local towTruckDriver = GetPedInVehicleSeat(flatbed, -1)
 
     if (Config.BlacklistedModels[targetModel] or Config.BlacklistedClasses[targetClass]) then
-        return notification(_, Config.Lang['error'][5], 'error')
+        return notification(false, Config.Lang['error'][5], 'error')
     end
 
     local targetDriver = GetPedInVehicleSeat(target, -1)
-    if targetDriver ~= 0 then return notification(_, Config.Lang['error'][6], 'error') end
+    if targetDriver ~= 0 then return notification(false, Config.Lang['error'][6], 'error') end
 
     if flatbed == target then return end
-    if not isTowVehicle(flatbed) then return notification(_, Config.Lang['error'][7], 'error') end
+    if not isTowVehicle(flatbed) then return notification(false, Config.Lang['error'][7], 'error') end
     if GetEntityType(target) ~= 2 then return end
 
     local state = Entity(flatbed).state.FlatBed
     if not state then return end
-    if state.carAttached then return notification(_, Config.Lang['error'][8], 'error') end
+    if state.carAttached then return notification(false, Config.Lang['error'][8], 'error') end
 
     local towTruckCoords, targetCoords = GetEntityCoords(flatbed), GetEntityCoords(target)
     local distance = #(targetCoords - towTruckCoords)
@@ -181,22 +180,22 @@ local function hookVehicle(NetworkID)
                 disableCombat = true,
             }, {}, {}, {}, function()
                 local playerId = GetPlayerServerId(NetworkGetPlayerIndexFromPed(towTruckDriver))
-                if playerId and playerId ~= 0 then return notification(_, Config.Lang['error'][9], 'error') end
+                if playerId and playerId ~= 0 then return notification(false, Config.Lang['error'][9], 'error') end
 
                 attachVehicleToBed(flatbed, target)
                 TriggerServerEvent('brazzers-tow:server:syncHook', true, NetworkGetNetworkIdFromEntity(flatbed), NetworkGetNetworkIdFromEntity(target))
             end, function()
-                notification(_, Config.Lang['error'][10], 'error')
+                notification(false, Config.Lang['error'][10], 'error')
             end)
         end, function()
-            notification(_, Config.Lang['error'][10], 'error')
+            notification(false, Config.Lang['error'][10], 'error')
         end)
     end
 end
 
 local function unHookVehicle(NetworkID)
     local flatbed = NetworkGetEntityFromNetworkId(NetworkID)
-    if not flatbed then return notification(_, Config.Lang['error'][3], 'error') end
+    if not flatbed then return notification(false, Config.Lang['error'][3], 'error') end
 
     local target = FindVehicleAttachedToVehicle(flatbed)
     if not target or target == 0 then return end
@@ -204,7 +203,7 @@ local function unHookVehicle(NetworkID)
 
     local state = Entity(flatbed).state.FlatBed
     if not state then return end
-    if not state.carAttached then return notification(_, Config.Lang['error'][11], 'error') end
+    if not state.carAttached then return notification(false, Config.Lang['error'][11], 'error') end
 
     TaskTurnPedToFaceEntity(PlayerPedId(), flatbed, 1.0)
     Wait(1000)
@@ -221,13 +220,13 @@ local function unHookVehicle(NetworkID)
             disableMouse = false,
             disableCombat = true,
         }, {}, {}, {}, function()
-            if not IsEntityAttachedToEntity(target, flatbed) then return notification(_, Config.Lang['error'][12], 'error') end
+            if not IsEntityAttachedToEntity(target, flatbed) then return notification(false, Config.Lang['error'][12], 'error') end
             TriggerServerEvent('brazzers-tow:server:syncDetach', NetworkGetNetworkIdFromEntity(flatbed))
         end, function()
-            notification(_, Config.Lang['error'][10], 'error')
+            notification(false, Config.Lang['error'][10], 'error')
         end)
     end, function()
-        notification(_, Config.Lang['error'][10], 'error')
+        notification(false, Config.Lang['error'][10], 'error')
     end)
 end
 
@@ -257,7 +256,6 @@ end)
 
 RegisterNetEvent('brazzers-tow:client:truckSpawned', function(NetID, plate)
     if NetID and plate then
-        CachedNet = NetID
         local vehicle = NetToVeh(NetID)
         exports[Config.Fuel]:SetFuel(vehicle, 100.0)
         TriggerServerEvent("qb-vehiclekeys:server:AcquireVehicleKeys", plate)
@@ -280,7 +278,7 @@ CreateThread(function()
             rotation = 117,
             debug = Config.Debug,
             options = {
-                {   
+                {
                     name = 'tow_signin_laptop',
                     icon = Config.Lang['target']['signIn'].icon,
                     label = Config.Lang['target']['signIn'].title,
@@ -293,7 +291,7 @@ CreateThread(function()
                         return true
                     end,
                 },
-                {   
+                {
                     name = 'tow_signout_laptop',
                     icon = Config.Lang['target']['signOut'].icon,
                     label = Config.Lang['target']['signOut'].title,
@@ -305,7 +303,7 @@ CreateThread(function()
                         return true
                     end,
                 },
-                {   
+                {
                     name = 'tow_missionboard_laptop',
                     icon = Config.Lang['target']['missionBoard'].icon,
                     label = Config.Lang['target']['missionBoard'].title,

@@ -19,14 +19,12 @@ server_scripts {
 shared_scripts {
 	'@qb-core/shared/locale.lua',
 	-- '@ox_lib/init.lua', -- IF YOU USING OX UNCOMMENT THIS
-	'locales/*.lua',
 	'shared/*.lua',
 }
 
 escrow_ignore {
     'client/*.lua',
 	'server/*.lua',
-	'locales/*.lua',
 	'shared/*.lua',
 	'README/*lua',
 }

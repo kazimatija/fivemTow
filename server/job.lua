@@ -329,11 +329,13 @@ RegisterNetEvent('brazzers-tow:server:leaveQueue', function()
         local members = exports[Config.Phone]:getGroupMembers(group)
         if not members then return end
 
-        if DoesEntityExist(NetworkGetEntityFromNetworkId(currentMission[group].netID)) then
-            DeleteEntity(NetworkGetEntityFromNetworkId(currentMission[group].netID))
-        end
+        if currentMission[group] then
+            if DoesEntityExist(NetworkGetEntityFromNetworkId(currentMission[group].netID)) then
+                DeleteEntity(NetworkGetEntityFromNetworkId(currentMission[group].netID))
+            end
 
-        resetLocation(currentMission[group].place, true)
+            resetLocation(currentMission[group].place, true)
+        end
 
         cachedQueue[group] = nil
         cachedMission[group] = nil
@@ -342,6 +344,7 @@ RegisterNetEvent('brazzers-tow:server:leaveQueue', function()
         for i=1, #members do
             if not members[i] then return end
             TriggerClientEvent('brazzers-tow:client:leaveQueue', members[i], true)
+            TriggerClientEvent('brazzers-tow:client:queueIndex', members[i], false)
         end
         return
     end
@@ -357,37 +360,13 @@ RegisterNetEvent('brazzers-tow:server:leaveQueue', function()
     currentMission[group] = nil
 
     TriggerClientEvent('brazzers-tow:client:leaveQueue', src, true)
+    TriggerClientEvent('brazzers-tow:client:queueIndex', src, false)
 end)
 
 RegisterNetEvent('brazzers-tow:server:sendMissionRequest', function(accepted)
     local src = source
     if not accepted then return TriggerClientEvent('brazzers-tow:client:reQueueSystem', src) end
     generateMission(src)
-end)
-
--- Callback
-
-QBCore.Functions.CreateCallback("brazzers-tow:server:isOnMission", function(source, cb)
-    local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
-    local retval = false
-    if not Player then return end
-
-    local group = Player.PlayerData.citizenid
-
-    if Config.RenewedPhone then
-        group = exports[Config.Phone]:GetGroupByMembers(src)
-        if not group then return end
-
-        local members = exports[Config.Phone]:getGroupMembers(group)
-        if not members then return end
-    end
-
-    if currentMission[group] then
-        retval = true
-    end
-
-    cb(retval)
 end)
 
 -- Threads
