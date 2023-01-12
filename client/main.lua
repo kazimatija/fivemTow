@@ -255,7 +255,6 @@ RegisterNetEvent('brazzers-tow:client:truckSpawned', function(NetID, plate)
     if NetID and plate then
         CachedNet = NetID
         local vehicle = NetToVeh(NetID)
-        print(vehicle)
         exports[Config.Fuel]:SetFuel(vehicle, 100.0)
         TriggerServerEvent("qb-vehiclekeys:server:AcquireVehicleKeys", plate)
         notification("CURRENT", "You have signed in, vehicle outside", 'primary')

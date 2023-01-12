@@ -11,7 +11,6 @@ local function getRep()
 
     for k, _ in pairs(Config.RepLevels) do
         if repAmount >= Config.RepLevels[k]['repNeeded'] then
-            print(Config.RepLevels[k]['label'])
             return Config.RepLevels[k]['label'], repAmount
         end
     end
@@ -159,7 +158,6 @@ RegisterNetEvent('brazzers-tow:client:reQueueSystem', function()
 end)
 
 RegisterNetEvent('brazzers-tow:client:leaveQueue', function(notify)
-    print("CLEARING BLIP")
     RemoveBlip(blip)
     if notify then
         notification('CURRENT', 'Your group was removed from the queue', 'primary')
