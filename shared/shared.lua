@@ -1,5 +1,7 @@
 Config = Config or {}
 
+Config.Debug = false
+
 Config.Core = 'qb-core'
 Config.Target = 'qb-target' -- ox or resource name (ex. 'qb-target' )
 Config.Fuel = 'qb-fuel' -- ox or resource name (ex. 'qb-fuel' )
@@ -18,6 +20,7 @@ Config.GroupLimit = 2 -- Amount of people allowed in a group to start a tow run/
 Config.WhitelistedJob = false -- If you wanna restrict sign in feature to only existing tow job people, set this to true. You will have to manually add the job below to the person then
 Config.Job = 'tow' -- tow job name from QBCore.Shared.Jobs
 Config.JobGrade = 0 -- grade level to assign the player when signing in
+Config.ToggleDuty = true -- Toggle duty when signing in and signing out
 Config.DepositRequired = true -- If a deposit is required to take out a vehicle
 Config.DepositAmount = 100 -- If above is true, then set the amount here
 
@@ -35,12 +38,16 @@ Config.VehicleSpawns = { -- Vehicle spawns for the tow truck
     vector4(492.45, -1331.87, 29.41, 344.83)
 }
 
-Config.ReQueue = true -- Do you want to auto requeue when completing a mission
+-- QUEUE CONFIG --
+Config.UseQueue = true -- Set to false if you want to receive contracts instantly when requested
+Config.QueueTimer = 5 -- Amount of time to wait in queue in minutes for a AI mission (above must be true)
+Config.ReQueue = true -- Do you want to auto requeue when completing a mission (this is basically if you want to auto get another job after completing one so you don't have to go back to the laptop and request)
 
 -- REPUTATION CONFIG --
 Config.AllowRep = true -- Do you want reputation system in general for this ? 
 Config.RepForMissionsOnly = true -- Only earn reputation for mission vehicles or allow rep earnings for all tows
 Config.RepName = 'trucking' -- Meta data name for reputation
+Config.GroupExtraRep = 0.5 -- 'false' or percentage of total (ex. base rep of 50 + 50 / 0.5 )
 Config.RepLevels = { -- All reputation levels, min rep needed for that rank, and reward per ranking ( I dont recommend removing or adding any (leave a suggestion) )
     ['S'] = { 
         ['label'] = 'Expert',
@@ -87,6 +94,7 @@ Config.RepLevels = { -- All reputation levels, min rep needed for that rank, and
 -- PAYOUT CONFIG --
 Config.BasePay = 100 -- if payout type is custom and for some reason you don't have the vehicle you towed in shared.lua, it cannot find a class hence will give this default pay
 Config.PayoutType = 'custom' -- 'custom' payout is based off the class defined in QBCore.Shared.Vehicles | 'standard' is utilizing payout based on GTA native class
+Config.GroupExtraMoney = 0.5 -- 'false' or percentage of total (ex. base price of $50 + $50 / 0.5 )
 Config.Payout = {
     ['standard'] = {
         [0] = { ['payout'] = 100 }, -- Compacts
