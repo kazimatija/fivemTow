@@ -120,6 +120,6 @@ function metaEarnings(source, inGroup)
         reward = reward + (math.ceil(reward * groupExtra))
     end
 
-    Player.Functions.SetMetaData(Config.RepName, math.ceil((curRep + reward)))
+    Player.Functions.SetMetaData(['jobrep'][Config.RepName], math.ceil((curRep + reward)))
     TriggerClientEvent('QBCore:Notify', source, Config.Lang['primary'][12]..' x'..reward..' reputation')
 end
