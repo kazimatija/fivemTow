@@ -106,8 +106,6 @@ end
 
 function metaEarnings(source, inGroup)
     local Player = QBCore.Functions.GetPlayer(source)
-
-    local curRep = Player.PlayerData.metadata['jobrep'][Config.RepName]
     local reward = getReward(source)
 
     if Config.AllowRep then
@@ -120,6 +118,6 @@ function metaEarnings(source, inGroup)
         reward = reward + (math.ceil(reward * groupExtra))
     end
 
-    Player.Functions.SetMetaData(['jobrep'][Config.RepName], math.ceil((curRep + reward)))
+    Player.Functions.AddJobReputation(math.ceil(reward))
     TriggerClientEvent('QBCore:Notify', source, Config.Lang['primary'][12]..' x'..reward..' reputation')
 end
