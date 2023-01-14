@@ -72,8 +72,11 @@ function createVehicle(source)
 
     if not class then return createVehicle(source) end
 
+    -- Define what cars you want pulled from your shared here!
     for k, v in pairs(QBCore.Shared.Vehicles) do
-        if v[Config.SharedTierName] and v[Config.SharedTierName] == class then
+        if Config.UseTierVehicles and v[Config.SharedTierName] and v[Config.SharedTierName] == class then
+            vehicle[#vehicle + 1] = k
+        else
             vehicle[#vehicle + 1] = k
         end
     end
@@ -85,9 +88,11 @@ function createVehicle(source)
 end
 
 function moneyEarnings(source, class, inGroup)
-    if not class then class = 'D' end
+    if not class then class = 'D' or 1 end
     if Config.Debug then print('Vehicle Class: '..class) end
     local Player = QBCore.Functions.GetPlayer(source)
+
+    if Config.PayoutType == 'custom' and not Config.UseTierVehicles then Config.PayoutType = 'standard' end
     local payout = Config.Payout[Config.PayoutType][class]['payout']
     if not payout then payout = Config.BasePay end
     
@@ -97,8 +102,10 @@ function moneyEarnings(source, class, inGroup)
     end
 
     -- You can remove this if you want no multiplier!
-    local multiplier = Config.RepLevels[class]['multiplier']
-    payout = payout + (math.ceil(payout * multiplier))
+    if Config.PayoutType == 'custom' and Config.UseTierVehicles then
+        local multiplier = Config.RepLevels[class]['multiplier']
+        payout = payout + (math.ceil(payout * multiplier))
+    end
 
     Player.Functions.AddMoney('cash', math.ceil(payout))
     TriggerClientEvent('QBCore:Notify', source, Config.Lang['primary'][11]..''..payout)
