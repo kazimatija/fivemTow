@@ -11,7 +11,9 @@ Config.NotificationStyle = 'phone' -- 'phone' for Renewed's Phone notifications 
 Config.TowTruck = 'flatbed' -- Tow truck model name
 Config.MarkedVehicleOnly = true -- Allow only marked vehicles to be towed and not random vehicles around the street [RECOMMENDED: TRUE]
 Config.CallTowThroughTarget = true -- Adds a global vehicle option to call tow drivers by targeting the vehicle entity
-Config.SharedTierName = 'tier' -- Name of QBCore.Shared.Vehicles that targets the classes. For me personally I use 'category' but I know others may use 'tier' because of jl-laptop
+
+Config.UseTierVehicles = true -- If you want to use tier class system. This requires extra steps so check readme
+Config.SharedTierName = 'tier' -- [ABOVE MUST BE TRUE] Name of QBCore.Shared.Vehicles that targets the classes. For me personally I use 'category' but I know others may use 'tier' because of jl-laptop
 
 -- PHONE CONFIG --
 Config.RenewedPhone = true -- If you use Renewed's Phone then leave this to true else put false
@@ -25,6 +27,7 @@ Config.JobGrade = 0 -- grade level to assign the player when signing in
 Config.ToggleDuty = true -- Toggle duty when signing in and signing out
 Config.DepositRequired = true -- If a deposit is required to take out a vehicle
 Config.DepositAmount = 100 -- If above is true, then set the amount here
+Config.CanRequestTow = {'police', 'somedumbjob'} -- All jobs here that can request a tow driver ( I don't recommend to put 'tow' here or people will farm your shit )
 
 Config.DepotLot = { -- Location
     vector3(-142.59, -1173.80, 23.76),
@@ -117,6 +120,7 @@ Config.Payout = {
         [19] = { ['payout'] = 100 }, -- Military
         [20] = { ['payout'] = 100 }, -- Commercial
     },
+    -- YOU CAN ONLY USE CUSTOM PAYOUT IF Config.UseTierVehicles == true 
     ['custom'] = {
         ['D'] = { ['payout'] = 150 },
         ['C'] = { ['payout'] = 250 },
