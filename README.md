@@ -27,7 +27,7 @@ Make sure to include this line in your qbcore/server/player.lua (IF YOU DON'T HA
     PlayerData.metadata['jobrep']['tow'] = PlayerData.metadata['jobrep']['tow'] or 0
 ```
 
-Lastly to vehicles to generate at all, similar to jl-laptop (You must add minimum 2 cars per tier to make it work) Headover to your qb-core/shared/vehicles and add this to all your following vehicles:
+If you're planning to use the tier system the generate vehicles then, similar to jl-laptop (You must add minimum 2 cars per tier to make it work) Headover to your qb-core/shared/vehicles and add this to all your following vehicles:
 ```lua
     ["tier"] = "D" -- Can either be D, C, B, A, S
 ```
