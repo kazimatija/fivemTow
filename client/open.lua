@@ -15,6 +15,24 @@ function getRep()
     end
 end
 
+function isTow()
+    local PlayerData = QBCore.Functions.GetPlayerData()
+    if (PlayerData.job.name == Config.Job) and PlayerData.job.onduty then
+        return true
+    end
+end
+
+function inZone()
+    local ped = PlayerPedId()
+    local pedPos = GetEntityCoords(ped)
+
+    for _, v in pairs(Config.DepotLot) do
+        if (#(pedPos - v.xyz) <= 20.0) then
+            return true
+        end
+    end
+end
+
 function notification(title, msg, action)
     if Config.NotificationStyle == 'phone' then
         TriggerEvent('qb-phone:client:CustomNotification', title, msg, 'fas fa-user', '#b3e0f2', 5000)
@@ -32,12 +50,21 @@ local function generateCustomClass(entity)
     end
 end
 
+local function canRequestTow()
+    local PlayerData = QBCore.Functions.GetPlayerData()
+    for _, v in pairs(Config.CanRequestTow) do
+        if (PlayerData.job.name == v) and PlayerData.job.onduty then
+            return true
+        end
+    end
+end
+
 function depotVehicle(NetworkID)
     local entity = NetworkGetEntityFromNetworkId(NetworkID)
     local plate = QBCore.Functions.GetPlate(entity)
     local class = GetVehicleClass(entity)
 
-    if Config.PayoutType == 'custom' then
+    if Config.PayoutType == 'custom' and Config.UseTierVehicles then
         class = generateCustomClass(entity)
     end
     QBCore.Functions.Progressbar("depot_vehicle", Config.Lang['progressBar']['depotVehicle'].title, Config.Lang['progressBar']['depotVehicle'].time, false, true, {
@@ -145,10 +172,275 @@ CreateThread(function()
     end
 end)
 
+-- Threads
+
+CreateThread(function()
+    if Config.Target == 'ox' then
+        exports.ox_target:addBoxZone({
+            coords = Config.LaptopCoords.xyz,
+            size = vec3(0.2, 0.4, 1.0),
+            rotation = 117,
+            debug = Config.Debug,
+            options = {
+                {
+                    name = 'tow_signin_laptop',
+                    icon = Config.Lang['target']['signIn'].icon,
+                    label = Config.Lang['target']['signIn'].title,
+                    onSelect = function()
+                        signIn()
+                    end,
+                    canInteract = function()
+                        if Config.WhitelistedJob and not isTow() then return end
+                        if signedIn then return end
+                        return true
+                    end,
+                },
+                {
+                    name = 'tow_signout_laptop',
+                    icon = Config.Lang['target']['signOut'].icon,
+                    label = Config.Lang['target']['signOut'].title,
+                    onSelect = function()
+                        signOut()
+                    end,
+                    canInteract = function()
+                        if not signedIn then return end
+                        return true
+                    end,
+                },
+                {
+                    name = 'tow_missionboard_laptop',
+                    icon = Config.Lang['target']['missionBoard'].icon,
+                    label = Config.Lang['target']['missionBoard'].title,
+                    onSelect = function()
+                        viewMissionBoard()
+                    end,
+                    canInteract = function()
+                        if Config.WhitelistedJob and not isTow() then return end
+                        if not signedIn then return end
+                        return true
+                    end,
+                },
+            }
+        })
+        return
+    end
+
+    exports[Config.Target]:AddBoxZone("tow_signin", Config.LaptopCoords.xyz, 0.2, 0.4, {
+        name = "tow_signin",
+        heading = 117.93,
+        debugPoly = false,
+        minZ = Config.LaptopCoords.z,
+        maxZ = Config.LaptopCoords.z + 1.0,
+        }, {
+            options = {
+            {
+                action = function()
+                    signIn()
+                end,
+                icon = Config.Lang['target']['signIn'].icon,
+                label = Config.Lang['target']['signIn'].title,
+                canInteract = function()
+                    if Config.WhitelistedJob and not isTow() then return end
+                    if signedIn then return end
+                    return true
+                end,
+            },
+            {
+                action = function()
+                    signOut()
+                end,
+                icon = Config.Lang['target']['signOut'].icon,
+                label = Config.Lang['target']['signOut'].title,
+                canInteract = function()
+                    if not signedIn then return end
+                    return true
+                end,
+            },
+            {
+                action = function()
+                    viewMissionBoard()
+                end,
+                icon = Config.Lang['target']['missionBoard'].icon,
+                label = Config.Lang['target']['missionBoard'].title,
+                canInteract = function()
+                    if Config.WhitelistedJob and not isTow() then return end
+                    if not signedIn then return end
+                    return true
+                end,
+            },
+        },
+        distance = 1.0,
+    })
+end)
+
+CreateThread(function()
+    if Config.Target == 'ox' then
+        local options = {
+            {
+                name = 'tow_hook_vehicle',
+                icon = Config.Lang['target']['hookVehicle'].icon,
+                label = Config.Lang['target']['hookVehicle'].title,
+                onSelect = function(data)
+                    hookVehicle(NetworkGetNetworkIdFromEntity(data.entity))
+                end,
+                canInteract = function(entity)
+                    if not isTowVehicle(entity) then return end
+                    if Config.AllowTowOnly and not isTow() then return end
+
+                    local target = GetVehicleBehindTowTruck(entity, -8, 0.7)
+                    if not target or target == 0 then return end
+
+                    local state = Entity(entity).state.FlatBed
+                    if not state then return end
+                    if state.carAttached then return end
+
+                    return true
+                end
+            },
+            {
+                name = 'tow_unhook_vehicle',
+                icon = Config.Lang['target']['unHookVehicle'].icon,
+                label = Config.Lang['target']['unHookVehicle'].title,
+                onSelect = function(data)
+                    unHookVehicle(NetworkGetNetworkIdFromEntity(data.entity))
+                end,
+                canInteract = function(entity)
+                    if not isTowVehicle(entity) then return end
+                    if Config.AllowTowOnly and not isTow() then return end
+
+                    local state = Entity(entity).state.FlatBed
+                    if not state then return end
+                    if not state.carAttached then return end
+
+                    return true
+                end
+            },
+            {
+                name = 'tow_depot_vehicle',
+                icon = Config.Lang['target']['depotVehicle'].icon,
+                label = Config.Lang['target']['depotVehicle'].title,
+                onSelect = function(data)
+                    depotVehicle(NetworkGetNetworkIdFromEntity(data.entity))
+                end,
+                canInteract = function(entity)
+                    if not isTow() then return end
+                    if not inZone() then return end
+                    local state = Entity(entity).state.FlatBed
+                    if state and state.carAttached then return end
+                    local markedState = Entity(entity).state.marked
+                    if not markedState then return end
+                    if not markedState.markedForTow then return end
+
+                    return true
+                end
+            },
+            {
+                name = 'call_tow_vehicle',
+                icon = Config.Lang['target']['markVehicle'].icon,
+                label = Config.Lang['target']['markVehicle'].title,
+                onSelect = function()
+                    callTow()
+                end,
+                canInteract = function(entity)
+                    if not canRequestTow() then return end
+                    local markedState = Entity(entity).state.marked
+                    if markedState and markedState.markedForTow then return end
+                    if not Config.CallTowThroughTarget then return end
+    
+                    return true
+                end
+            },
+        }
+        exports.ox_target:addGlobalVehicle(options)
+        return
+    end
+
+    exports[Config.Target]:AddGlobalVehicle({
+        options = {
+            {
+                label = Config.Lang['target']['hookVehicle'].title,
+                icon = Config.Lang['target']['hookVehicle'].icon,
+                action = function(entity)
+                    hookVehicle(NetworkGetNetworkIdFromEntity(entity))
+                end,
+                canInteract = function(entity)
+                    if not isTowVehicle(entity) then return end
+                    if Config.AllowTowOnly and not isTow() then return end
+
+                    local target = GetVehicleBehindTowTruck(entity, -8, 0.7)
+                    if not target or target == 0 then return end
+
+                    local state = Entity(entity).state.FlatBed
+                    if not state then return end
+                    if state.carAttached then return end
+
+                    return true
+                end
+            },
+            {
+                label = Config.Lang['target']['unHookVehicle'].title,
+                icon = Config.Lang['target']['unHookVehicle'].icon,
+                action = function(entity)
+                    unHookVehicle(NetworkGetNetworkIdFromEntity(entity))
+                end,
+                canInteract = function(entity)
+                    if not isTowVehicle(entity) then return end
+                    if Config.AllowTowOnly and not isTow() then return end
+
+                    local state = Entity(entity).state.FlatBed
+                    if not state then return end
+                    if not state.carAttached then return end
+
+                    return true
+                end
+            },
+            {
+                label = Config.Lang['target']['depotVehicle'].title,
+                icon = Config.Lang['target']['depotVehicle'].icon,
+                action = function(entity)
+                    depotVehicle(NetworkGetNetworkIdFromEntity(entity))
+                end,
+                canInteract = function(entity)
+                    if not isTow() then return end
+                    if not inZone() then return end
+                    local state = Entity(entity).state.FlatBed
+                    if state and state.carAttached then return end
+                    local markedState = Entity(entity).state.marked
+                    if not markedState then return end
+                    if not markedState.markedForTow then return end
+
+                    return true
+                end
+            },
+            {
+                label = Config.Lang['target']['markVehicle'].title,
+                icon = Config.Lang['target']['markVehicle'].icon,
+                action = function()
+                    callTow()
+                end,
+                canInteract = function(entity)
+                    if not canRequestTow() then return end
+                    local markedState = Entity(entity).state.marked
+                    if markedState and markedState.markedForTow then return end
+                    if not Config.CallTowThroughTarget then return end
+
+                    return true
+                end
+            },
+        },
+        distance = 1.5
+    })
+end)
+
 AddEventHandler('onResourceStop', function(resource)
     if resource == GetCurrentResourceName() then
         for k, _ in pairs(blips) do
             RemoveBlip(blips[k])
         end
     end
+end)
+
+-- Export if you want to check if you're signed into tow in any other script
+exports('isSignedIn', function()
+    return signedIn
 end)
