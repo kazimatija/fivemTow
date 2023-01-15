@@ -144,6 +144,17 @@ RegisterNetEvent('brazzers-tow:client:receiveTowRequest', function(pos, plate, b
     end)
 end)
 
+RegisterNetEvent('brazzers-tow:client:truckSpawned', function(NetID, plate)
+    Wait(500)
+    if NetID and plate then
+        local vehicle = NetToVeh(NetID)
+        exports[Config.Fuel]:SetFuel(vehicle, 100.0)
+        TriggerServerEvent("qb-vehiclekeys:server:AcquireVehicleKeys", plate)
+        notification(Config.Lang['current'], Config.Lang['primary'][5], 'primary')
+    end
+    signedIn = true
+end)
+
 -- Global Blip
 local mainBlip = nil
 local depotBlip = nil

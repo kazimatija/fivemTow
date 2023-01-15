@@ -232,16 +232,6 @@ RegisterNetEvent('brazzers-tow:client:groupDeleted', function()
     TriggerServerEvent('brazzers-tow:server:forceSignOut')
 end)
 
-RegisterNetEvent('brazzers-tow:client:truckSpawned', function(NetID, plate)
-    if NetID and plate then
-        local vehicle = NetToVeh(NetID)
-        exports[Config.Fuel]:SetFuel(vehicle, 100.0)
-        TriggerServerEvent("qb-vehiclekeys:server:AcquireVehicleKeys", plate)
-        notification(Config.Lang['current'], Config.Lang['primary'][5], 'primary')
-    end
-    signedIn = true
-end)
-
 RegisterNetEvent('brazzers-tow:client:forceSignOut', function()
     forceSignOut()
 end)
