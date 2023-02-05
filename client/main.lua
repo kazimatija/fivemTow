@@ -157,15 +157,18 @@ function hookVehicle(NetworkID)
                 disableMouse = false,
                 disableCombat = true,
             }, {}, {}, {}, function()
+                ClearPedTasks(PlayerPedId())
                 local playerId = GetPlayerServerId(NetworkGetPlayerIndexFromPed(towTruckDriver))
                 if playerId and playerId ~= 0 then return notification(false, Config.Lang['error'][9], 'error') end
 
                 attachVehicleToBed(flatbed, target)
                 TriggerServerEvent('brazzers-tow:server:syncHook', true, NetworkGetNetworkIdFromEntity(flatbed), NetworkGetNetworkIdFromEntity(target))
             end, function()
+                ClearPedTasks(PlayerPedId())
                 notification(false, Config.Lang['error'][10], 'error')
             end)
         end, function()
+            ClearPedTasks(PlayerPedId())
             notification(false, Config.Lang['error'][10], 'error')
         end)
     end
@@ -198,12 +201,15 @@ function unHookVehicle(NetworkID)
             disableMouse = false,
             disableCombat = true,
         }, {}, {}, {}, function()
+            ClearPedTasks(PlayerPedId())
             if not IsEntityAttachedToEntity(target, flatbed) then return notification(false, Config.Lang['error'][12], 'error') end
             TriggerServerEvent('brazzers-tow:server:syncDetach', NetworkGetNetworkIdFromEntity(flatbed))
         end, function()
+            ClearPedTasks(PlayerPedId())
             notification(false, Config.Lang['error'][10], 'error')
         end)
     end, function()
+        ClearPedTasks(PlayerPedId())
         notification(false, Config.Lang['error'][10], 'error')
     end)
 end
