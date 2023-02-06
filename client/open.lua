@@ -22,13 +22,6 @@ function isTow()
     end
 end
 
-function onDuty()
-    local PlayerData = QBCore.Functions.GetPlayerData()
-    if (PlayerData.job.onduty) then
-        return true
-    end
-end
-
 function inZone()
     local ped = PlayerPedId()
     local pedPos = GetEntityCoords(ped)
@@ -209,7 +202,6 @@ CreateThread(function()
                     end,
                     canInteract = function()
                         if Config.WhitelistedJob and not isTow() then return end
-                        if onDuty() then return end
                         if signedIn then return end
                         return true
                     end,
@@ -222,7 +214,6 @@ CreateThread(function()
                         signOut()
                     end,
                     canInteract = function()
-                        if not onDuty() then return end
                         if not signedIn then return end
                         return true
                     end,
@@ -261,7 +252,6 @@ CreateThread(function()
                 label = Config.Lang['target']['signIn'].title,
                 canInteract = function()
                     if Config.WhitelistedJob and not isTow() then return end
-                    if onDuty() then return end
                     if signedIn then return end
                     return true
                 end,
@@ -273,7 +263,6 @@ CreateThread(function()
                 icon = Config.Lang['target']['signOut'].icon,
                 label = Config.Lang['target']['signOut'].title,
                 canInteract = function()
-                    if not onDuty() then return end
                     if not signedIn then return end
                     return true
                 end,
