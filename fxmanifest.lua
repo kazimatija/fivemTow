@@ -23,7 +23,9 @@ shared_scripts {
 }
 
 escrow_ignore {
+	'client/job.lua',
     'client/open.lua',
+	'server/job.lua',
 	'server/open.lua',
 	'shared/*.lua',
 }

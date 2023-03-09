@@ -128,3 +128,112 @@ function metaEarnings(source, inGroup)
     Player.Functions.AddJobReputation(math.ceil(reward))
     TriggerClientEvent('QBCore:Notify', source, Config.Lang['primary'][12]..' x'..reward..' reputation')
 end
+
+-- Queue related
+
+RegisterNetEvent('brazzers-tow:server:depotVehicle', function(plate, class, netID)
+    if not plate then return end
+    local src = source
+    local Player = QBCore.Functions.GetPlayer(src)
+    if not Player then return end
+
+    if Config.MarkedVehicleOnly then
+        local isMarked = isVehicleMarked(netID)
+        if not isMarked then return TriggerClientEvent('QBCore:Notify', src, Config.Lang['error'][20], 'error') end
+    end
+
+    if DoesEntityExist(NetworkGetEntityFromNetworkId(netID)) then
+        DeleteEntity(NetworkGetEntityFromNetworkId(netID))
+    end
+
+    if not Config.RenewedPhone then
+        -- Reset Blip
+        TriggerClientEvent('brazzers-tow:client:leaveQueue', src, false)
+
+        moneyEarnings(src, class)
+        
+        if not Config.AllowRep then return end
+        if Config.RepForMissionsOnly and not isMissionEntity(netID) then return end
+        metaEarnings(src)
+
+        if isMissionEntity(netID) then
+            if not Config.ReQueue then
+                endMission(src, group) -- DEFINE GROUP HERE
+                return
+            end
+            TriggerClientEvent('brazzers-tow:client:reQueueSystem', src)
+        end
+
+        return
+    end
+
+    local group = exports[Config.Phone]:GetGroupByMembers(src)
+    if not group then return end
+
+    local members = exports[Config.Phone]:getGroupMembers(group)
+    if not members then return end
+
+    local size = exports[Config.Phone]:getGroupSize(group)
+    local inGroup = false
+
+    for i=1, #members do
+        if members[i] then
+            local groupMembers = QBCore.Functions.GetPlayer(members[i])
+            if groupMembers.PlayerData.job.name == Config.Job then
+                -- Reset Blip
+                TriggerClientEvent('brazzers-tow:client:leaveQueue', members[i], false)
+
+                if size > Config.GroupLimit then
+                    TriggerClientEvent('QBCore:Notify', members[i], Config.Lang['error'][21], "error")
+                end
+
+                if size <= Config.GroupLimit then
+                    if size > 1 then inGroup = true end
+                    moneyEarnings(members[i], class, inGroup)
+                else
+                    if exports[Config.Phone]:isGroupLeader(members[i], group) then
+                        moneyEarnings(members[i], class, false)
+                    end
+                end
+
+                if not Config.AllowRep then 
+                    if isMissionEntity(netID) then
+                        if not Config.ReQueue then
+                            endMission(src, group)
+                            return
+                        end
+                        if exports[Config.Phone]:isGroupLeader(members[i], group) then
+                            TriggerClientEvent('brazzers-tow:client:reQueueSystem', members[i])
+                        end
+                    end
+                    return 
+                end
+                if Config.RepForMissionsOnly and not isMissionEntity(netID) then return end
+
+                if size <= Config.GroupLimit then
+                    if size > 1 then inGroup = true end
+                    metaEarnings(members[i], inGroup)
+                else
+                    if exports[Config.Phone]:isGroupLeader(members[i], group) then
+                        metaEarnings(members[i], false)
+                    end
+                end
+            end
+        end
+    end
+
+    if isMissionEntity(netID) then
+        if not Config.ReQueue then
+            endMission(src, group)
+            return
+        end
+
+        for i=1, #members do
+            if members[i] then
+                if exports[Config.Phone]:isGroupLeader(members[i], group) then
+                    TriggerClientEvent('brazzers-tow:client:reQueueSystem', members[i])
+                end
+            end
+        end
+    end
+end)
