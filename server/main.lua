@@ -12,7 +12,7 @@ function markForTow(car, plate)
     }
 end
 
-local function isMissionEntity(vehicle)
+function isMissionEntity(vehicle)
     local syncedVehicle = NetworkGetEntityFromNetworkId(vehicle)
     local syncedState = Entity(syncedVehicle).state.tow
     if not syncedState then return end
@@ -22,7 +22,7 @@ local function isMissionEntity(vehicle)
     end
 end
 
-local function isVehicleMarked(vehicle)
+function isVehicleMarked(vehicle)
     local syncedMarked = NetworkGetEntityFromNetworkId(vehicle)
     local syncedState = Entity(syncedMarked).state.marked
     if not syncedState then return end
