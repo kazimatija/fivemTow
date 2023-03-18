@@ -82,23 +82,6 @@ local function generateVehicle(group, source)
     end
 end
 
-local function sendMissionRequest(groupLeader)
-    local src = groupLeader
-    local Player = QBCore.Functions.GetPlayer(src)
-    local group = Player.PlayerData.citizenid
-
-    if Config.RenewedPhone then
-        group = exports[Config.Phone]:GetGroupByMembers(src)
-        if not group then return end
-
-        cachedQueue[group].inQueue = false
-        TriggerClientEvent('brazzers-tow:client:sendMissionRequest', src)
-        return
-    end
-    cachedQueue[group].inQueue = false
-    generateMission(src)
-end
-
 local function generateMission(groupLeader)
     if not groupLeader then return end
 
@@ -153,6 +136,23 @@ local function generateMission(groupLeader)
         cachedQueue[group].inQueue = false
         TriggerClientEvent('brazzers-tow:client:sendMissionBlip', src, currentMission[group].currentLocation) -- SEND BLIP
     end
+end
+
+local function sendMissionRequest(groupLeader)
+    local src = groupLeader
+    local Player = QBCore.Functions.GetPlayer(src)
+    local group = Player.PlayerData.citizenid
+
+    if Config.RenewedPhone then
+        group = exports[Config.Phone]:GetGroupByMembers(src)
+        if not group then return end
+
+        cachedQueue[group].inQueue = false
+        TriggerClientEvent('brazzers-tow:client:sendMissionRequest', src)
+        return
+    end
+    cachedQueue[group].inQueue = false
+    generateMission(src)
 end
 
 function endMission(source, group)
