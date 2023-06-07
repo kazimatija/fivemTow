@@ -320,4 +320,13 @@ if Config.RenewedPhone then
             TriggerClientEvent("brazzers-tow:client:groupDeleted", players[i])
         end
     end)
+else
+    AddEventHandler('playerDropped', function()
+        local src = source
+        local Player = QBCore.Functions.GetPlayer(src)
+        if Player then
+            local cid = Player.PlayerData.citizenid
+            cachedTow[cid] = nil
+        end
+    end)
 end
