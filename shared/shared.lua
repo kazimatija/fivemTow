@@ -1,89 +1,88 @@
 Config = Config or {}
 
-Config.Debug = false
+Config.Debug = true
 
 Config.Core = 'qb-core'
-Config.Target = 'qb-target' -- ox or resource name (ex. 'qb-target' )
-Config.Fuel = 'qb-fuel' -- ox or resource name (ex. 'qb-fuel' )
-Config.Menu = 'qb-menu' -- 'ox' or resource name (ex. 'qb-menu')
+Config.Target = 'ox' -- ox or resource name (ex. 'qb-target' )
+Config.Fuel = 'ox'   -- ox or resource name (ex. 'qb-fuel' )
+Config.Menu = 'ox'   -- 'ox' or resource name (ex. 'qb-menu')
 
-Config.NotificationStyle = 'phone' -- 'phone' for Renewed's Phone notifications | 'qbcore' for standard qbcore notifications
-Config.TowTruck = 'flatbed' -- Tow truck model name
-Config.MarkedVehicleOnly = true -- Allow only marked vehicles to be towed and not random vehicles around the street [RECOMMENDED: TRUE]
+Config.NotificationStyle =
+'phone'                            -- 'phone' for Renewed's Phone notifications | 'qbcore' for standard qbcore notifications
+Config.TowTruck = 'flatbed'        -- Tow truck model name
+Config.MarkedVehicleOnly = true    -- Allow only marked vehicles to be towed and not random vehicles around the street [RECOMMENDED: TRUE]
 Config.CallTowThroughTarget = true -- Adds a global vehicle option to call tow drivers by targeting the vehicle entity
 
-Config.UseTierVehicles = true -- If you want to use tier class system. This requires extra steps so check readme
-Config.SharedTierName = 'tier' -- [ABOVE MUST BE TRUE] Name of QBCore.Shared.Vehicles that targets the classes. For me personally I use 'category' but I know others may use 'tier' because of jl-laptop
+Config.UseTierVehicles = true      -- If you want to use tier class system. This requires extra steps so check readme
+Config.SharedTierName =
+'tier'                             -- [ABOVE MUST BE TRUE] Name of QBCore.Shared.Vehicles that targets the classes. For me personally I use 'category' but I know others may use 'tier' because of jl-laptop
 
 -- PHONE CONFIG --
-Config.RenewedPhone = true -- If you use Renewed's Phone then leave this to true else put false
-Config.Phone = 'qb-phone' -- If using Renewed's Phone then put your resource name here
-Config.OnlyLeader = true -- Allow only the leader of the group to sign into the tow job [RECOMMENDED: TRUE]
-Config.GroupLimit = 2 -- Amount of people allowed in a group to start a tow run/ get mission rewards
+Config.RenewedPhone = false         -- If you use Renewed's Phone then leave this to true else put false
+Config.Phone = 'qb-phone'           -- If using Renewed's Phone then put your resource name here
+Config.OnlyLeader = true            -- Allow only the leader of the group to sign into the tow job [RECOMMENDED: TRUE]
+Config.GroupLimit = 1               -- Amount of people allowed in a group to start a tow run/ get mission rewards
 
-Config.WhitelistedJob = false -- If you wanna restrict sign in feature to only existing tow job people, set this to true. You will have to manually add the job below to the person then
-Config.Job = 'tow' -- tow job name from QBCore.Shared.Jobs
-Config.JobGrade = 0 -- grade level to assign the player when signing in
-Config.ToggleDuty = true -- Toggle duty when signing in and signing out
-Config.DepositRequired = true -- If a deposit is required to take out a vehicle
-Config.DepositAmount = 100 -- If above is true, then set the amount here
-Config.CanRequestTow = {'police', 'somedumbjob'} -- All jobs here that can request a tow driver ( I don't recommend to put 'tow' here or people will farm your shit )
+Config.WhitelistedJob = false       -- If you wanna restrict sign in feature to only existing tow job people, set this to true. You will have to manually add the job below to the person then
+Config.Job = 'tow'                  -- tow job name from QBCore.Shared.Jobs
+Config.JobGrade = 0                 -- grade level to assign the player when signing in
+Config.ToggleDuty = true            -- Toggle duty when signing in and signing out
+Config.DepositRequired = true       -- If a deposit is required to take out a vehicle
+Config.DepositAmount = 100          -- If above is true, then set the amount here
+Config.CanRequestTow = { 'police' } -- All jobs here that can request a tow driver ( I don't recommend to put 'tow' here or people will farm your shit )
 
-Config.DepotLot = { -- Location
-    vector3(-142.59, -1173.80, 23.76),
-    vector3(1014.98, -2326.57, 30.51),
+Config.DepotLot = {                 -- Location
+    vector3(402.0139, -1632.3669, 29.2919),
 }
-Config.AllowTowOnly = false -- set this to true if you want to only allow the tow job to use hook/ unhook vehicle on the tow truck
-Config.BlipLength = 5 -- Amount of time in minutes a calls blip stays on the map
+Config.AllowTowOnly = false                                  -- set this to true if you want to only allow the tow job to use hook/ unhook vehicle on the tow truck
+Config.BlipLength = 5                                        -- Amount of time in minutes a calls blip stays on the map
 
-Config.LaptopCoords = vector3(471.58, -1310.89, 28.94) -- Location to sign in
-Config.VehicleSpawns = { -- Vehicle spawns for the tow truck
-    vector4(499.06, -1333.53, 29.42, 26.54),
-    vector4(486.88, -1332.38, 29.38, 297.66),
-    vector4(496.51, -1332.84, 29.42, 3.8),
-    vector4(492.45, -1331.87, 29.41, 344.83)
+Config.LaptopCoords = vector3(407.6891, -1624.8713, 28.2919) -- Location to sign in
+Config.VehicleSpawns = {                                     -- Vehicle spawns for the tow truck
+    vector4(402.8550, -1631.9324, 29.3798, 174.3085),
+    vector4(407.4576, -1647.6146, 29.3797, 227.7593),
 }
 
 -- QUEUE CONFIG --
 Config.UseQueue = true -- Set to false if you want to receive contracts instantly when requested
-Config.QueueTimer = 5 -- Amount of time to wait in queue in minutes for a AI mission (above must be true)
-Config.ReQueue = true -- Do you want to auto requeue when completing a mission (this is basically if you want to auto get another job after completing one so you don't have to go back to the laptop and request)
+Config.QueueTimer = 5  -- Amount of time to wait in queue in minutes for a AI mission (above must be true)
+Config.ReQueue = true  -- Do you want to auto requeue when completing a mission (this is basically if you want to auto get another job after completing one so you don't have to go back to the laptop and request)
 
 -- REPUTATION CONFIG --
-Config.AllowRep = true -- Do you want reputation system in general for this ? 
-Config.RepForMissionsOnly = true -- Only earn reputation for mission vehicles or allow rep earnings for all tows
-Config.RepName = 'tow' -- Meta data name for reputation
-Config.GroupExtraRep = 0.5 -- 'false' or percentage of total (ex. base rep of 50 + 50 / 0.5 )
-Config.RepLevels = { -- All reputation levels, min rep needed for that rank, and reward per ranking ( I dont recommend removing or adding any (leave a suggestion) )
-    ['S'] = { 
-        ['label'] = 'Expert', -- Label Name
-        ['repNeeded'] = 800, -- Amount of rep to be this level
+Config.AllowRep = true                  -- Do you want reputation system in general for this ?
+Config.RepForMissionsOnly = true        -- Only earn reputation for mission vehicles or allow rep earnings for all tows
+Config.RepName = 'tow'                  -- Meta data name for reputation
+Config.GroupExtraRep = 0.5              -- 'false' or percentage of total (ex. base rep of 50 + 50 / 0.5 )
+Config.RepLevels = {                    -- All reputation levels, min rep needed for that rank, and reward per ranking ( I dont recommend removing or adding any (leave a suggestion) )
+    ['S'] = {
+        ['label'] = 'Expert',           -- Label Name
+        ['repNeeded'] = 800,            -- Amount of rep to be this level
         ['reward'] = math.random(5, 8), -- Meta reward for turning a vehicle in with this class
-        ['multiplier'] = 2.0, -- Multiplier to receive extra money (ex $50 + $50 * 2.0)
-        ['chance'] = 5, -- percentage for getting one of these vehicles when at that class level
+        ['multiplier'] = 2.0,           -- Multiplier to receive extra money (ex $50 + $50 * 2.0)
+        ['chance'] = 5,                 -- percentage for getting one of these vehicles when at that class level
     },
-    ['A'] = { 
+    ['A'] = {
         ['label'] = 'Pro',
         ['repNeeded'] = 500,
         ['reward'] = math.random(4, 7),
         ['multiplier'] = 1.5,
         ['chance'] = 15,
     },
-    ['B'] = { 
+    ['B'] = {
         ['label'] = 'Intermediate',
         ['repNeeded'] = 250,
         ['reward'] = math.random(3, 6),
         ['multiplier'] = 1.0,
         ['chance'] = 35,
     },
-    ['C'] = { 
+    ['C'] = {
         ['label'] = 'Novice',
         ['repNeeded'] = 20,
         ['reward'] = math.random(2, 5),
         ['multiplier'] = 0.7,
         ['chance'] = 50,
     },
-    ['D'] = { 
+    ['D'] = {
         ['label'] = 'Beginner',
         ['repNeeded'] = 0,
         ['reward'] = math.random(1, 4),
@@ -93,21 +92,22 @@ Config.RepLevels = { -- All reputation levels, min rep needed for that rank, and
 }
 
 -- PAYOUT CONFIG --
-Config.BasePay = 100 -- if payout type is custom and for some reason you don't have the vehicle you towed in shared.lua, it cannot find a class hence will give this default pay
-Config.PayoutType = 'custom' -- 'custom' payout is based off the class defined in QBCore.Shared.Vehicles | 'standard' is utilizing payout based on GTA native class
+Config.BasePay = 100         -- if payout type is custom and for some reason you don't have the vehicle you towed in shared.lua, it cannot find a class hence will give this default pay
+Config.PayoutType =
+'custom'                     -- 'custom' payout is based off the class defined in QBCore.Shared.Vehicles | 'standard' is utilizing payout based on GTA native class
 Config.GroupExtraMoney = 0.5 -- 'false' or percentage of total (ex. base price of $50 + $50 / 0.5 )
 Config.Payout = {
     ['standard'] = {
-        [0] = { ['payout'] = 100 }, -- Compacts
-        [1] = { ['payout'] = 100 }, -- Sedans
-        [2] = { ['payout'] = 100 }, -- SUVs
-        [3] = { ['payout'] = 100 }, -- Coupes
-        [4] = { ['payout'] = 100 }, -- Muscle
-        [5] = { ['payout'] = 100 }, -- Sports Classic
-        [6] = { ['payout'] = 100 }, -- Sports
-        [7] = { ['payout'] = 100 }, -- Super
-        [8] = { ['payout'] = 100 }, -- Motorcycles
-        [9] = { ['payout'] = 100 }, -- Off-road
+        [0] = { ['payout'] = 100 },  -- Compacts
+        [1] = { ['payout'] = 100 },  -- Sedans
+        [2] = { ['payout'] = 100 },  -- SUVs
+        [3] = { ['payout'] = 100 },  -- Coupes
+        [4] = { ['payout'] = 100 },  -- Muscle
+        [5] = { ['payout'] = 100 },  -- Sports Classic
+        [6] = { ['payout'] = 100 },  -- Sports
+        [7] = { ['payout'] = 100 },  -- Super
+        [8] = { ['payout'] = 100 },  -- Motorcycles
+        [9] = { ['payout'] = 100 },  -- Off-road
         [10] = { ['payout'] = 100 }, -- Industrial
         [11] = { ['payout'] = 100 }, -- Utility
         [12] = { ['payout'] = 100 }, -- Vans
@@ -120,7 +120,7 @@ Config.Payout = {
         [19] = { ['payout'] = 100 }, -- Military
         [20] = { ['payout'] = 100 }, -- Commercial
     },
-    -- YOU CAN ONLY USE CUSTOM PAYOUT IF Config.UseTierVehicles == true 
+    -- YOU CAN ONLY USE CUSTOM PAYOUT IF Config.UseTierVehicles == true
     ['custom'] = {
         ['D'] = { ['payout'] = 150 },
         ['C'] = { ['payout'] = 250 },
@@ -173,74 +173,115 @@ Config.BlacklistedModels = {
 }
 
 Config.BlacklistedClasses = {
+    [8] = true,
+    [9] = true,
+    [10] = true,
+    [11] = true,
+    [12] = true,
+    [13] = true,
+    [14] = true,
     [15] = true,
     [16] = true,
+    [17] = true,
+    [18] = true,
+    [19] = true,
+    [20] = true
 }
 
 Config.Lang = {
-    ['current'] = 'CURRENT',
-    ['missionRequest'] = {title = 'JOB OFFER AI', desc = 'Incoming Tow Request', icon = 'fas fa-map-pin', color = '#b3e0f2'},
+    ['current'] = 'Current',
+    ['missionRequest'] = { title = 'Job Offer', desc = 'Vehicle Towing Request', icon = 'fas fa-map-pin', color = '#b3e0f2' },
     ['missionBoard'] = {
-        ['header'] = {label = 'Tow Truck Missions', repLabel = 'x Reputation', icon = 'fas fa-building'},
-        ['firstMenu'] = {title = 'Start Mission', icon = 'fas fa-briefcase', desc = 'Queue into missions dispatched by Bon Joe'},
-        ['secondMenu'] = {title = 'Leave Queue', icon = 'fas fa-briefcase'},
-        ['thirdMenu'] = {title = 'Close', icon = 'fas fa-angle-left'},
+        ['header'] = { label = 'Tow Truck Missions', repLabel = 'x Reputation', icon = 'fas fa-building' },
+        ['firstMenu'] = { title = 'Start Mission', icon = 'fas fa-briefcase', desc = 'Queue into missions dispatched by Bon Joe' },
+        ['secondMenu'] = { title = 'Leave Queue', icon = 'fas fa-briefcase' },
+        ['thirdMenu'] = { title = 'Close', icon = 'fas fa-angle-left' },
     },
     ['primary'] = {
-        [1] = 'Vehicle location has been marked',
-        [2] = 'Tow the vehicle back to the lot',
-        [3] = 'Your group was removed from the queue',
+        [1] = 'Vehicle location marked',
+        [2] = 'Tow the vehicle back to the parking lot',
+        [3] = 'Your group has been removed from the queue',
         [4] = 'You have signed out!',
-        [5] = 'You have signed in, vehicle outside',
-        [6] = 'You did not auto requeue and must queue up again',
-        [7] = 'You have joined the queue',
-        [8] = 'You have auto requeued!',
+        [5] = 'You have signed in, check the laptop!',
+        [6] = 'You were not automatically requeued and must queue again',
+        [7] = 'You have joined the queue, the vehicle is ahead!',
+        [8] = 'You have automatic requeue enabled!',
         [9] = 'You have received your deposit back',
-        [10] = 'A driver accepted your tow request',
-        [11] = 'You received $',
-        [12] = 'You earned '
+        [10] = 'The driver has accepted your towing request',
+        [11] = 'You have received $',
+        [12] = 'You have earned '
     },
     ['error'] = {
-        [1] = 'There\'s a vehicle in the way',
-        [2] = 'You don\'t have a phone',
-        [3] = 'Tow truck doesn\'t exist',
-        [4] = 'No vehicle found',
+        [1] = 'A vehicle is on the way',
+        [2] = 'You don’t have a phone',
+        [3] = 'Tow truck does not exist',
+        [4] = 'Vehicle not found',
         [5] = 'You cannot tow this type of vehicle',
-        [6] = 'Vehicle must be empty',
-        [7] = 'You do not have a tow truck',
-        [8] = 'There is a vehicle attached already',
-        [9] = 'There cannot be a driver inside the tow truck',
-        [10] = 'Canceled',
-        [11] = 'There is no vehicle attached to the bed',
-        [12] = 'No vehicle attached',
-        [13] = 'You did not receive your deposit back',
-        [14] = 'Your group can only have '..Config.GroupLimit..' members in it',
-        [15] = 'Your group is currently busy doing something else',
-        [16] = 'You must be the group leader to sign in',
-        [17] = 'Your group is already signed in!',
-        [18] = 'You need $'..Config.DepositAmount..' to be able to take a tow truck out!',
-        [19] = 'Error try again!',
-        [20] = 'This vehicle is not marked for tow',
-        [21] = 'Your group can only have '..Config.GroupLimit..' members in it to reward everyone in the group',
+        [6] = 'The vehicle must be empty',
+        [7] = 'You don’t have a tow truck',
+        [8] = 'The vehicle is already attached',
+        [9] = 'There cannot be a driver in the truck',
+        [10] = 'Cancelled',
+        [11] = 'No car attached to the truck',
+        [12] = 'No attached vehicle',
+        [13] = 'Your deposit was not returned',
+        [14] = 'A group can have ' .. Config.GroupLimit .. ' members',
+        [15] = 'Group is active',
+        [16] = 'You must be the leader',
+        [17] = 'The group is already signed in!',
+        [18] = 'You need $' .. Config.DepositAmount .. ' to take out the tow truck!',
+        [19] = 'Error, please try again!',
+        [20] = 'This vehicle is not marked for towing',
+        [21] = 'Your group can only have ' .. Config.GroupLimit .. ' members in order to reward everyone in the group',
+        [22] = "No vehicle detected behind the tow truck!",
+        [23] = "Invalid URL format! URLs must start with http:// or https://",
+        [24] = "You cannot do this job! (You are blocked)",
+        [25] = "This vehicle has not been towed!"
     },
     ['progressBar'] = {
-        ['hookVehicle'] = {title = 'Hooking up vehicle', time = 2500},
-        ['towVehicle'] = {title = 'Towing vehicle', time = 2500},
-        ['unTowVehicle'] = {title = 'Untowing vehicle', time = 2500},
-        ['unHookVehicle'] = {title = 'Unhooking Vehicle', time = 2500},
-        ['depotVehicle'] = {title = 'Sending Vehicle To Depot', time = 1500},
-        ['callingTow'] = {title = 'Calling Tow', time = 3500},
+        ['hookVehicle'] = { title = 'Hooking the vehicle', time = 2500 },
+        ['towVehicle'] = { title = 'Towing the vehicle', time = 2500 },
+        ['unTowVehicle'] = { title = 'Unhooking the vehicle', time = 2500 },
+        ['unHookVehicle'] = { title = 'Detaching the vehicle', time = 2500 },
+        ['depotVehicle'] = { title = 'Sending the vehicle to the depot', time = 1500 },
+        ['callingTow'] = { title = 'Calling tow truck', time = 3500 },
     },
     ['target'] = {
-        ['signIn'] = {title = 'Sign In', icon = 'fas fa-hands'},
-        ['signOut'] = {title = 'Sign Out', icon = 'fas fa-hands'},
-        ['missionBoard'] = {title = 'View Mission Board', icon = 'fas fa-hands'},
-        ['hookVehicle'] = {title = 'Hook Vehicle', icon = 'fas fa-car-rear'},
-        ['unHookVehicle'] = {title = 'Unhook Vehicle', icon = 'fas fa-car-rear'},
-        ['depotVehicle'] = {title = 'Depot Vehicle', icon = 'fas fa-car-rear'},
-        ['markVehicle'] = {title = 'Call Tow', icon = 'fas fa-hands'}
+        ['signIn'] = { title = 'Sign in', icon = 'fas fa-hands' },
+        ['signOut'] = { title = 'Sign out', icon = 'fas fa-hands' },
+        ['missionBoard'] = { title = 'View tasks', icon = 'fas fa-hands' },
+        ['hookVehicle'] = { title = 'Attach vehicle', icon = 'fas fa-car-rear' },
+        ['unHookVehicle'] = { title = 'Detach vehicle', icon = 'fas fa-car-rear' },
+        ['depotVehicle'] = { title = 'Send to depot', icon = 'fas fa-car-rear' },
+        ['markVehicle'] = { title = 'Call tow truck', icon = 'fas fa-hands' },
+        ['submitPhotos'] = { title = "Submit photos", icon = "fas fa-camera" },
+        ['impound'] = { title = "Impound vehicle", icon = "fas fa-car-crash" }
     },
     ['blip'] = {
-        ['towRequest'] = 'Tow Request: ',
+        ['towRequest'] = 'Towing request: ',
     },
+    ['photoDialog'] = {
+        title = "Submit Towing Photos",
+        licensePlate = "License plate photo URL",
+        fullCar = "Full vehicle photo URL"
+    },
+    ['success'] = {
+        [1] = "Vehicle successfully impounded ($%s)",
+        [2] = "You can now attach the vehicle!",
+        [3] = "Time remaining until the next impound: %s minutes"
+    }
+}
+
+Config.DiscordWebhook =
+"https://discord.com/api/webhooks/..."
+
+Config.Impound = {
+    Payout = 100,
+    RequiredJob = 'tow',    -- Player must have this job
+    Radius = 3.0,           -- Interaction distance from vehicle
+    AllowAnyVehicle = true, -- Impound any vehicle (no prior marking needed)
+    DeleteOnImpound = true, -- Delete vehicle after impound
+    Cooldown = 900,         -- 15 minutes in seconds
+    CooldownMessageTow = "You must wait %s before you can attach another vehicle.",
+    CooldownMessageImpound = "You must wait %s before you can impound another vehicle."
 }

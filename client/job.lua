@@ -1,5 +1,3 @@
-local QBCore = exports[Config.Core]:GetCoreObject()
-
 -- Global Variables
 
 local inQueue = false
@@ -8,8 +6,8 @@ local blip
 local function CreateBlip(coords)
     blip = AddBlipForCoord(coords.x, coords.y, coords.z)
     SetBlipScale(blip, 0.7)
-	SetBlipColour(blip, 3)
-	SetBlipRoute(blip, true)
+    SetBlipColour(blip, 3)
+    SetBlipRoute(blip, true)
     return blip
 end
 
@@ -48,11 +46,11 @@ function viewMissionBoard()
     local label = Config.Lang['missionBoard']['header'].label
     if Config.AllowRep then
         local repLevel, repAmount = getRep()
-        label = repLevel..' | '..repAmount..''..Config.Lang['missionBoard']['header'].repLabel
+        label = repLevel .. ' | ' .. repAmount .. '' .. Config.Lang['missionBoard']['header'].repLabel
     end
     if Config.Menu == 'ox' then
         local menu = {}
-        menu[#menu+1] = {
+        menu[#menu + 1] = {
             title = Config.Lang['missionBoard']['firstMenu'].title,
             icon = Config.Lang['missionBoard']['firstMenu'].icon,
             description = Config.Lang['missionBoard']['firstMenu'].desc,
@@ -60,7 +58,7 @@ function viewMissionBoard()
             disabled = isSignedIn,
         }
         if inQueue then
-            menu[#menu+1] = {
+            menu[#menu + 1] = {
                 title = Config.Lang['missionBoard']['secondMenu'].title,
                 icon = Config.Lang['missionBoard']['secondMenu'].icon,
                 serverEvent = "brazzers-tow:server:leaveQueue",
@@ -81,7 +79,7 @@ function viewMissionBoard()
                 icon = Config.Lang['missionBoard']['header'].icon,
             },
         }
-        menu[#menu+1] = {
+        menu[#menu + 1] = {
             header = Config.Lang['missionBoard']['firstMenu'].title,
             isMenuHeader = isSignedIn,
             txt = Config.Lang['missionBoard']['firstMenu'].desc,
@@ -91,7 +89,7 @@ function viewMissionBoard()
             }
         }
         if inQueue then
-            menu[#menu+1] = {
+            menu[#menu + 1] = {
                 header = Config.Lang['missionBoard']['secondMenu'].title,
                 icon = Config.Lang['missionBoard']['secondMenu'].icon,
                 params = {
@@ -100,7 +98,7 @@ function viewMissionBoard()
                 }
             }
         end
-        menu[#menu+1] = {
+        menu[#menu + 1] = {
             header = Config.Lang['missionBoard']['thirdMenu'].title,
             icon = Config.Lang['missionBoard']['thirdMenu'].icon,
             params = {
@@ -152,7 +150,9 @@ RegisterNetEvent('brazzers-tow:client:leaveQueue', function(notify)
 end)
 
 RegisterNetEvent('brazzers-tow:client:sendMissionRequest', function()
-    local success = exports[Config.Phone]:PhoneNotification(Config.Lang['missionRequest'].title, Config.Lang['missionRequest'].desc, Config.Lang['missionRequest'].icon, Config.Lang['missionRequest'].color, "NONE", 'fas fa-check-circle', 'fas fa-times-circle')
+    local success = exports[Config.Phone]:PhoneNotification(Config.Lang['missionRequest'].title,
+        Config.Lang['missionRequest'].desc, Config.Lang['missionRequest'].icon, Config.Lang['missionRequest'].color,
+        "NONE", 'fas fa-check-circle', 'fas fa-times-circle')
     if not success then return TriggerServerEvent('brazzers-tow:server:sendMissionRequest', false) end
     TriggerServerEvent('brazzers-tow:server:sendMissionRequest', true)
 end)

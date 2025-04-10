@@ -4,12 +4,25 @@ local cachedTow = {}
 local usedPlates = {}
 local calls = 0
 
+local cooldowns = {} -- [citizenid] = expiration_timestamp
+
 function markForTow(car, plate)
     local car = NetworkGetEntityFromNetworkId(car)
     Entity(car).state.marked = {
         markedForTow = true,
         plate = plate,
     }
+end
+
+local function FindAttachedVehicle(towTruck)
+    local vehicles = GetAllVehicles()
+    for i = 1, #vehicles do
+        local vehicle = vehicles[i]
+        if GetEntityAttachedTo(vehicle) == towTruck then
+            return vehicle
+        end
+    end
+    return 0
 end
 
 function isMissionEntity(vehicle)
@@ -27,7 +40,7 @@ function isVehicleMarked(vehicle)
     local syncedState = Entity(syncedMarked).state.marked
     if not syncedState then return end
     if not syncedState.markedForTow then return end
-    
+
     return true
 end
 
@@ -53,7 +66,7 @@ local function forceSignOut(source, group, resetAll)
 
     if resetAll then
         local members = exports[Config.Phone]:getGroupMembers(group)
-        for i=1, #members do
+        for i = 1, #members do
             if members[i] then
                 TriggerClientEvent("brazzers-tow:client:forceSignOut", members[i])
             end
@@ -66,7 +79,7 @@ local function forceSignOut(source, group, resetAll)
 end
 
 local function generatePlate()
-    local string = "TOW"..QBCore.Shared.RandomInt(5)
+    local string = "TOW" .. QBCore.Shared.RandomInt(5)
     if usedPlates[string] then
         return generatePlate()
     else
@@ -84,7 +97,7 @@ local function spawnVehicle(source, carType, group, coords)
     while not DoesEntityExist(car) do
         Wait(25)
     end
-    
+
     local NetID = NetworkGetNetworkIdFromEntity(car)
     local plate = generatePlate()
 
@@ -103,7 +116,7 @@ local function spawnVehicle(source, carType, group, coords)
         local members = exports[Config.Phone]:getGroupMembers(group)
         if not members then return end
 
-        for i=1, #members do
+        for i = 1, #members do
             if members[i] then
                 TriggerClientEvent("brazzers-tow:client:truckSpawned", members[i], NetID, plate)
             end
@@ -117,8 +130,14 @@ end
 RegisterNetEvent('brazzers-tow:server:syncHook', function(index, NetID, hookedVeh)
     local src = source
     local car = NetworkGetEntityFromNetworkId(NetID)
+    local targetVeh = NetworkGetEntityFromNetworkId(hookedVeh)
     local state = Entity(car).state.FlatBed
     if not state then return end
+
+    if DoesEntityExist(car) and DoesEntityExist(targetVeh) then
+        -- Mark vehicle as towed by this tow truck
+        Entity(targetVeh).state:set('towedBy', NetID, true)
+    end
 
     local newState = {
         carAttached = index,
@@ -140,7 +159,7 @@ RegisterNetEvent('brazzers-tow:server:syncHook', function(index, NetID, hookedVe
             if not members then return end
 
             if isMissionEntity(hookedVeh) then
-                for i=1, #members do
+                for i = 1, #members do
                     if members[i] then
                         TriggerClientEvent('brazzers-tow:client:sendMissionBlip', members[i], false)
                     end
@@ -169,9 +188,12 @@ RegisterNetEvent('brazzers-tow:server:forceSignOut', function()
         local members = exports[Config.Phone]:getGroupMembers(group)
         if not members then return end
 
-        if Config.OnlyLeader and not exports[Config.Phone]:isGroupLeader(src, group) then return TriggerClientEvent('QBCore:Notify', src, "You must be the group leader to sign out", "error") end
+        if Config.OnlyLeader and not exports[Config.Phone]:isGroupLeader(src, group) then
+            return TriggerClientEvent(
+                'QBCore:Notify', src, "You must be the group leader to sign out", "error")
+        end
 
-        for i=1, #members do
+        for i = 1, #members do
             if members[i] then
                 local groupMembers = QBCore.Functions.GetPlayer(members[i])
                 forceSignOut(members[i], group, true)
@@ -202,14 +224,23 @@ RegisterNetEvent('brazzers-tow:server:signIn', function(coords)
     local group = Player.PlayerData.citizenid
 
     if Config.RenewedPhone then
-        group = exports[Config.Phone]:GetGroupByMembers(src) or exports[Config.Phone]:CreateGroup(src, "Tow-"..Player.PlayerData.citizenid)
+        group = exports[Config.Phone]:GetGroupByMembers(src) or
+            exports[Config.Phone]:CreateGroup(src, "Tow-" .. Player.PlayerData.citizenid)
         local size = exports[Config.Phone]:getGroupSize(group)
 
-        if size > Config.GroupLimit then return TriggerClientEvent('QBCore:Notify', src, Config.Lang['error'][14], "error") end
-        if exports[Config.Phone]:getJobStatus(group) ~= "WAITING" then return TriggerClientEvent('QBCore:Notify', src, Config.Lang['error'][15], "error") end
-        if Config.OnlyLeader and not exports[Config.Phone]:isGroupLeader(src, group) then return TriggerClientEvent('QBCore:Notify', src, Config.Lang['error'][16], "error") end
+        if size > Config.GroupLimit then
+            return TriggerClientEvent('QBCore:Notify', src, Config.Lang['error'][14],
+                "error")
+        end
+        if exports[Config.Phone]:getJobStatus(group) ~= "WAITING" then
+            return TriggerClientEvent('QBCore:Notify', src,
+                Config.Lang['error'][15], "error")
+        end
+        if Config.OnlyLeader and not exports[Config.Phone]:isGroupLeader(src, group) then
+            return TriggerClientEvent(
+                'QBCore:Notify', src, Config.Lang['error'][16], "error")
+        end
     end
-
     if not group then return end
     if cachedTow[group] then return TriggerClientEvent('QBCore:Notify', src, Config.Lang['error'][17], "error") end
 
@@ -218,7 +249,6 @@ RegisterNetEvent('brazzers-tow:server:signIn', function(coords)
             cash = Player.PlayerData.money['cash'],
             bank = Player.PlayerData.money['bank'],
         }
-
         if deposit.cash >= Config.DepositAmount then
             Player.Functions.RemoveMoney("cash", Config.DepositAmount)
         elseif deposit.bank >= Config.DepositAmount then
@@ -235,8 +265,8 @@ RegisterNetEvent('brazzers-tow:server:signIn', function(coords)
     if Config.RenewedPhone then
         local members = exports[Config.Phone]:getGroupMembers(group)
         if not members then return end
-    
-        for i=1, #members do
+
+        for i = 1, #members do
             if members[i] then
                 local groupMembers = QBCore.Functions.GetPlayer(members[i])
                 if not Config.WhitelistedJob then
@@ -274,14 +304,18 @@ RegisterNetEvent('brazzers-tow:server:markForTow', function(netID, vehName, plat
         local Employees = QBCore.Functions.GetPlayer(v)
         if Employees then
             if Employees.PlayerData.job.name == Config.Job and Employees.PlayerData.job.onduty then
-                if not Config.RenewedPhone then return TriggerClientEvent('brazzers-tow:client:receiveTowRequest', Employees.PlayerData.source, coords, plate, calls) end
+                if not Config.RenewedPhone then
+                    return TriggerClientEvent('brazzers-tow:client:receiveTowRequest',
+                        Employees.PlayerData.source, coords, plate, calls)
+                end
 
-                local info = {Receiver = Employees, Sender = src}
+                local info = { Receiver = Employees, Sender = src }
                 local group = exports[Config.Phone]:GetGroupByMembers(Employees.PlayerData.source)
                 if not group then return end
 
                 if exports[Config.Phone]:isGroupLeader(Employees.PlayerData.source, group) then
-                    TriggerClientEvent('brazzers-tow:client:sendTowRequest', Employees.PlayerData.source, info, vehName, plate, coords)
+                    TriggerClientEvent('brazzers-tow:client:sendTowRequest', Employees.PlayerData.source, info, vehName,
+                        plate, coords)
                 end
             end
         end
@@ -297,17 +331,43 @@ RegisterNetEvent("brazzers-tow:server:sendTowRequest", function(info, vehicle, p
 
     calls = calls + 1
 
-    for i=1, #members do
+    for i = 1, #members do
         if members[i] then
             TriggerClientEvent('brazzers-tow:client:receiveTowRequest', members[i], pos, plate, calls) -- SEND BLIP
         end
     end
-   
+
     if not Config.RenewedPhone then return TriggerClientEvent('QBCore:Notify', info.Sender, Config.Lang['primary'][10]) end
-    TriggerClientEvent('qb-phone:client:CustomNotification', info.Sender, Config.Lang['current'], Config.Lang['primary'][10], 'fas fa-map-pin', '#b3e0f2', 7500)
+    TriggerClientEvent('qb-phone:client:CustomNotification', info.Sender, Config.Lang['current'],
+        Config.Lang['primary'][10], 'fas fa-map-pin', '#b3e0f2', 7500)
 end)
 
 RegisterNetEvent('brazzers-tow:server:syncDetach', function(flatbed)
+    local src = source
+    local towTruck = NetworkGetEntityFromNetworkId(flatbed)
+    local targetVeh = FindAttachedVehicle(towTruck)
+
+    if DoesEntityExist(targetVeh) then
+        -- Check if detached in impound zone
+        local vehCoords = GetEntityCoords(targetVeh)
+        local inZone = false
+        for _, zone in pairs(Config.DepotLot) do
+            if #(vehCoords - zone) <= 20.0 then
+                inZone = true
+                break
+            end
+        end
+
+        if inZone then
+            -- Mark as eligible for 15 minutes
+            Entity(targetVeh).state:set('impoundEligible', true, true)
+            SetTimeout(900000, function() -- 15 minutes
+                if DoesEntityExist(targetVeh) then
+                    Entity(targetVeh).state:set('impoundEligible', false, true)
+                end
+            end)
+        end
+    end
     TriggerClientEvent('brazzers-tow:client:syncDetach', -1, flatbed)
 end)
 
@@ -316,7 +376,7 @@ if Config.RenewedPhone then
         if not cachedTow[group] then return end
         if cachedTow[group].plate then usedPlates[cachedTow[group].plate] = nil end
         cachedTow[group] = nil
-        for i=1, #players do
+        for i = 1, #players do
             TriggerClientEvent("brazzers-tow:client:groupDeleted", players[i])
         end
     end)
@@ -330,3 +390,133 @@ else
         end
     end)
 end
+
+-- Check cooldown status
+QBCore.Functions.CreateCallback('brazzers-tow:server:canImpound', function(source, cb)
+    local Player = QBCore.Functions.GetPlayer(source)
+    if not Player or Player.PlayerData.job.name ~= Config.Impound.RequiredJob then
+        cb(false)
+        return
+    end
+
+    local cid = Player.PlayerData.citizenid
+    local currentTime = os.time()
+    local remaining = (cooldowns[cid] or 0) - currentTime
+
+    cb({
+        allowed = remaining <= 0,
+        timeLeft = remaining > 0 and remaining or 0
+    })
+end)
+
+-- Check cooldown status
+QBCore.Functions.CreateCallback('brazzers-tow:server:canTow', function(source, cb)
+    local Player = QBCore.Functions.GetPlayer(source)
+    if not Player or Player.PlayerData.job.name ~= Config.Impound.RequiredJob then
+        cb(false)
+        return
+    end
+
+    local cid = Player.PlayerData.citizenid
+    local currentTime = os.time()
+    local remaining = (cooldowns[cid] or 0) - currentTime
+
+    cb({
+        allowed = remaining <= 0,
+        timeLeft = remaining > 0 and remaining or 0
+    })
+end)
+
+-- Start cooldown
+RegisterNetEvent('brazzers-tow:server:startCooldown', function()
+    local Player = QBCore.Functions.GetPlayer(source)
+    if Player and Player.PlayerData.job.name == Config.Impound.RequiredJob then
+        cooldowns[Player.PlayerData.citizenid] = os.time() + Config.Impound.Cooldown
+    end
+end)
+
+-- Clear cooldown on job exit
+-- RegisterNetEvent('brazzers-tow:server:clearCooldown', function()
+--     local Player = QBCore.Functions.GetPlayer(source)
+--     if Player then
+--         cooldowns[Player.PlayerData.citizenid] = nil
+--     end
+-- end)
+
+-- Auto-create table on resource start
+MySQL.ready(function()
+    MySQL.Async.execute([[
+        CREATE TABLE IF NOT EXISTS `tow_blacklist` (
+            `citizenid` VARCHAR(50) NOT NULL PRIMARY KEY,
+            `timestamp` TIMESTAMP DEFAULT CURRENT_TIMESTAMP()
+        )
+    ]], nil, function()
+        print("[BRAZZERS-TOW] Tow blacklist table initialized")
+    end)
+end)
+
+QBCore.Commands.Add("blocktow", "Blacklist player from tow job", { { name = "citizenid", help = "Player CitizenID" } },
+    true, function(source, args)
+    local src = source
+    local citizenid = args[1]:upper()
+
+    if not string.match(citizenid, "^[%u%d]+$") then
+        TriggerClientEvent('QBCore:Notify', src, 'Invalid CitizenID format!', 'error')
+        return
+    end
+
+    MySQL.Async.fetchScalar('SELECT citizenid FROM tow_blacklist WHERE citizenid = ?', { citizenid }, function(exists)
+        if exists then
+            TriggerClientEvent('QBCore:Notify', src, 'Player is already blocked!', 'error')
+            return
+        end
+
+        MySQL.Async.execute('INSERT INTO tow_blacklist (citizenid) VALUES (?)', { citizenid }, function()
+            TriggerClientEvent('QBCore:Notify', src, 'Successfully blocked: ' .. citizenid, 'success')
+
+            local Target = QBCore.Functions.GetPlayerByCitizenId(citizenid)
+            if Target then
+                -- Revoke tow job
+                Target.Functions.SetJob('unemployed', 0)
+
+                -- Delete their tow truck if exists
+                if cachedTow[Target.PlayerData.citizenid] then
+                    local vehicle = NetworkGetEntityFromNetworkId(cachedTow[Target.PlayerData.citizenid].towtruck)
+                    if DoesEntityExist(vehicle) then
+                        DeleteEntity(vehicle)
+                    end
+                    cachedTow[Target.PlayerData.citizenid] = nil
+                end
+
+                -- Force sign out
+                TriggerClientEvent('brazzers-tow:client:forceSignOut', Target.PlayerData.source)
+            end
+        end)
+    end)
+end, 'admin')
+
+-- Unblock command
+QBCore.Commands.Add("unblocktow", "Unblacklist player", { { name = "citizenid", help = "Player CitizenID" } }, true,
+    function(source, args)
+        local src = source
+        local citizenid = args[1]:upper()
+
+        MySQL.Async.execute('DELETE FROM tow_blacklist WHERE citizenid = ?', { citizenid }, function(rowsChanged)
+            if rowsChanged > 0 then
+                TriggerClientEvent('QBCore:Notify', src, 'Successfully unblocked: ' .. citizenid, 'success')
+            else
+                TriggerClientEvent('QBCore:Notify', src, 'Player is not blocked!', 'error')
+            end
+        end)
+    end, 'admin')
+
+-- Check blacklist status
+QBCore.Functions.CreateCallback('brazzers-tow:server:isBlacklisted', function(source, cb)
+    local Player = QBCore.Functions.GetPlayer(source)
+    if not Player then return cb(false) end
+
+    MySQL.Async.fetchScalar('SELECT citizenid FROM tow_blacklist WHERE citizenid = ?', { Player.PlayerData.citizenid },
+        function(result)
+            cb(result ~= nil)
+        end)
+end)

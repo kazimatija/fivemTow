@@ -55,7 +55,7 @@ local function generateVehicle(group, source)
     local car = Citizen.InvokeNative(CreateAutomobile, joaat(carModel), coords, true, false)
 
     local checks = 0
-    
+
     while not DoesEntityExist(car) do
         if checks == 10 then break end
         Wait(25)
@@ -75,7 +75,8 @@ local function generateVehicle(group, source)
         SetVehicleNumberPlateText(car, plate)
         currentMission[group].netID = NetworkGetNetworkIdFromEntity(car)
         currentMission[group].plate = plate
-        TriggerClientEvent('brazzers-tow:client:setCarDamage', src, currentMission[group].netID, currentMission[group].plate)
+        TriggerClientEvent('brazzers-tow:client:setCarDamage', src, currentMission[group].netID,
+            currentMission[group].plate)
         return true
     else
         return false
@@ -92,7 +93,7 @@ local function generateMission(groupLeader)
     if Config.RenewedPhone then
         group = exports[Config.Phone]:GetGroupByMembers(src)
         if not group then return end
-        
+
         local location, place = generateLocation()
         if not location then return end
 
@@ -111,9 +112,10 @@ local function generateMission(groupLeader)
             markForTow(currentMission[group].netID, currentMission[group].plate)
             cachedQueue[group].inQueue = false
 
-            for i=1, #members do
+            for i = 1, #members do
                 if members[i] then
-                    TriggerClientEvent('brazzers-tow:client:sendMissionBlip', members[i], currentMission[group].currentLocation) -- SEND BLIP
+                    TriggerClientEvent('brazzers-tow:client:sendMissionBlip', members[i],
+                        currentMission[group].currentLocation)                                                                   -- SEND BLIP
                 end
             end
         end
@@ -200,7 +202,7 @@ RegisterNetEvent('brazzers-tow:server:joinQueue', function(isAllowed)
 
         if cachedMission[group] then return print("CURRENTLY ON A MISSION") end
         if not exports[Config.Phone]:isGroupLeader(src, group) then return print("YOU MUST BE GROUP LEADER TO QUEUE") end
-        
+
         if not cachedQueue[group] then cachedQueue[group] = {} end
         if not cachedMission[group] then cachedMission[group] = {} end
 
@@ -212,7 +214,7 @@ RegisterNetEvent('brazzers-tow:server:joinQueue', function(isAllowed)
         }
 
         if cachedQueue[group].inQueue then
-            for i=1, #members do
+            for i = 1, #members do
                 if not members[i] then return end
                 TriggerClientEvent('brazzers-tow:client:queueIndex', members[i], cachedQueue[group].inQueue)
                 notification(members[i], Config.Lang['current'], Config.Lang['primary'][7], 'primary')
@@ -281,7 +283,7 @@ RegisterNetEvent('brazzers-tow:server:reQueueSystem', function()
         }
 
         if cachedQueue[group].inQueue then
-            for i=1, #members do
+            for i = 1, #members do
                 if not members[i] then return end
                 TriggerClientEvent('brazzers-tow:client:queueIndex', members[i], cachedQueue[group].inQueue)
                 notification(members[i], Config.Lang['current'], Config.Lang['primary'][8], 'primary')
@@ -341,7 +343,7 @@ RegisterNetEvent('brazzers-tow:server:leaveQueue', function()
         cachedMission[group] = nil
         currentMission[group] = nil
 
-        for i=1, #members do
+        for i = 1, #members do
             if not members[i] then return end
             TriggerClientEvent('brazzers-tow:client:leaveQueue', members[i], true)
             TriggerClientEvent('brazzers-tow:client:queueIndex', members[i], false)
@@ -394,7 +396,7 @@ if Config.RenewedPhone then
     AddEventHandler('qb-phone:server:GroupDeleted', function(group, players)
         if not cachedQueue[group] or not cachedMission[group] or not currentMission[group] then return end
 
-        for i=1, #players do
+        for i = 1, #players do
             endMission(players[i], group)
         end
     end)

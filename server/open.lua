@@ -2,7 +2,9 @@ local QBCore = exports[Config.Core]:GetCoreObject()
 
 local function getReward(source)
     local Player = QBCore.Functions.GetPlayer(source)
-    local repAmount = Player.PlayerData.metadata['jobrep'][Config.RepName]
+    --[[ local repAmount = Player.PlayerData.metadata['jobrep'][Config.RepName] ]]
+
+    local repAmount = 10
 
     for k, _ in pairs(Config.RepLevels) do
         if repAmount >= Config.RepLevels[k]['repNeeded'] then
@@ -13,7 +15,9 @@ end
 
 local function getMultiplier(source)
     local Player = QBCore.Functions.GetPlayer(source)
-    local repAmount = Player.PlayerData.metadata['jobrep'][Config.RepName]
+    --[[ local repAmount = Player.PlayerData.metadata['jobrep'][Config.RepName] ]]
+
+    local repAmount = 10
 
     for k, _ in pairs(Config.RepLevels) do
         if repAmount >= Config.RepLevels[k]['repNeeded'] then
@@ -34,7 +38,9 @@ function createVehicle(source)
     while not QBCore do Wait(250) end
 
     local Player = QBCore.Functions.GetPlayer(source)
-    local metaData = Player.PlayerData.metadata['jobrep'][Config.RepName] or 0
+    --[[ local metaData = Player.PlayerData.metadata['jobrep'][Config.RepName] or 0 ]]
+
+    local metaData = 10
 
     local vehicle = {}
     local class = nil
@@ -83,19 +89,19 @@ function createVehicle(source)
     if vehicle == 0 then return false end
     local index = vehicle[math.random(1, #vehicle)]
     local vehicle = QBCore.Shared.Vehicles[index]['model']
-    if Config.Debug then print('Creating Vehicle: '..vehicle) end
+    if Config.Debug then print('Creating Vehicle: ' .. vehicle) end
     return vehicle
 end
 
 function moneyEarnings(source, class, inGroup)
     if not class then class = 'D' or 1 end
-    if Config.Debug then print('Vehicle Class: '..class) end
+    if Config.Debug then print('Vehicle Class: ' .. class) end
     local Player = QBCore.Functions.GetPlayer(source)
 
     if Config.PayoutType == 'custom' and not Config.UseTierVehicles then Config.PayoutType = 'standard' end
     local payout = Config.Payout[Config.PayoutType][class]['payout']
     if not payout then payout = Config.BasePay end
-    
+
     if Config.GroupExtraMoney and inGroup then
         local groupExtra = Config.GroupExtraMoney
         payout = payout + (math.ceil(payout * groupExtra))
@@ -108,7 +114,7 @@ function moneyEarnings(source, class, inGroup)
     end
 
     Player.Functions.AddMoney('cash', math.ceil(payout))
-    TriggerClientEvent('QBCore:Notify', source, Config.Lang['primary'][11]..''..payout)
+    TriggerClientEvent('QBCore:Notify', source, Config.Lang['primary'][11] .. '' .. payout)
 end
 
 function metaEarnings(source, inGroup)
@@ -125,8 +131,8 @@ function metaEarnings(source, inGroup)
         reward = reward + (math.ceil(reward * groupExtra))
     end
 
-    Player.Functions.AddJobReputation(math.ceil(reward))
-    TriggerClientEvent('QBCore:Notify', source, Config.Lang['primary'][12]..' x'..reward..' reputation')
+    --[[ Player.Functions.AddJobReputation(math.ceil(reward)) ]]
+    TriggerClientEvent('QBCore:Notify', source, Config.Lang['primary'][12] .. ' x' .. reward .. ' reputation')
 end
 
 -- Queue related
@@ -151,7 +157,7 @@ RegisterNetEvent('brazzers-tow:server:depotVehicle', function(plate, class, netI
         TriggerClientEvent('brazzers-tow:client:leaveQueue', src, false)
 
         moneyEarnings(src, class)
-        
+
         if not Config.AllowRep then return end
         if Config.RepForMissionsOnly and not isMissionEntity(netID) then return end
         metaEarnings(src)
@@ -176,7 +182,7 @@ RegisterNetEvent('brazzers-tow:server:depotVehicle', function(plate, class, netI
     local size = exports[Config.Phone]:getGroupSize(group)
     local inGroup = false
 
-    for i=1, #members do
+    for i = 1, #members do
         if members[i] then
             local groupMembers = QBCore.Functions.GetPlayer(members[i])
             if groupMembers.PlayerData.job.name == Config.Job then
@@ -196,7 +202,7 @@ RegisterNetEvent('brazzers-tow:server:depotVehicle', function(plate, class, netI
                     end
                 end
 
-                if not Config.AllowRep then 
+                if not Config.AllowRep then
                     if isMissionEntity(netID) then
                         if not Config.ReQueue then
                             endMission(src, group)
@@ -206,7 +212,7 @@ RegisterNetEvent('brazzers-tow:server:depotVehicle', function(plate, class, netI
                             TriggerClientEvent('brazzers-tow:client:reQueueSystem', members[i])
                         end
                     end
-                    return 
+                    return
                 end
                 if Config.RepForMissionsOnly and not isMissionEntity(netID) then return end
 
@@ -228,7 +234,7 @@ RegisterNetEvent('brazzers-tow:server:depotVehicle', function(plate, class, netI
             return
         end
 
-        for i=1, #members do
+        for i = 1, #members do
             if members[i] then
                 if exports[Config.Phone]:isGroupLeader(members[i], group) then
                     TriggerClientEvent('brazzers-tow:client:reQueueSystem', members[i])
@@ -236,4 +242,67 @@ RegisterNetEvent('brazzers-tow:server:depotVehicle', function(plate, class, netI
             end
         end
     end
+end)
+
+RegisterNetEvent('brazzers-tow:server:logTow', function(plate, model, coords, licenseUrl, carUrl)
+    local src = source
+    local Player = QBCore.Functions.GetPlayer(src)
+    if not Player then return end
+
+    local embed = {
+        title = "🚨 New Tow Log - " .. plate,
+        fields = {
+            { name = "👤 Player", value = Player.PlayerData.name .. " (" .. src .. ")", inline = true },
+            { name = "🚗 Vehicle", value = model, inline = true },
+            { name = "📍 Location", value = "```x: " .. coords.x .. "\ny: " .. coords.y .. "\nz: " .. coords.z .. "```" },
+            { name = "🔖 License Plate Photo", value = licenseUrl },
+            { name = "📸 Full Vehicle Photo", value = carUrl }
+        },
+        color = 16711680, -- Red
+        timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+    }
+
+    PerformHttpRequest(Config.DiscordWebhook, function(err, text, headers) end, "POST", json.encode({
+        embeds = { embed }
+    }), { ["Content-Type"] = "application/json" })
+
+    TriggerClientEvent('QBCore:Notify', src, Config.Lang['success'][2], 'success')
+end)
+
+RegisterNetEvent('brazzers-tow:server:impoundVehicle', function(netId)
+    local src = source
+    local Player = QBCore.Functions.GetPlayer(src)
+
+    if not Player or Player.PlayerData.job.name ~= Config.Impound.RequiredJob then
+        print('Player not authorized:', src)
+        return
+    end
+
+    local vehicle = NetworkGetEntityFromNetworkId(netId)
+
+    if not DoesEntityExist(vehicle) then return end
+
+    -- Check eligibility
+    local state = Entity(vehicle).state
+    if not state.impoundEligible or not state.towedBy then
+        TriggerClientEvent('QBCore:Notify', src, Config.Lang['error'][26], 'error')
+        return
+    end
+
+    if DoesEntityExist(vehicle) then
+        if Config.Impound.DeleteOnImpound then
+            DeleteEntity(vehicle)
+        end
+        Player.Functions.AddMoney('cash', Config.Impound.Payout)
+        TriggerClientEvent('QBCore:Notify', src, 'Vehicle successfully impounded ($' .. Config.Impound.Payout .. ')',
+            'success')
+        TriggerClientEvent('QBCore:Notify', src,
+            string.format(Config.Lang['success'][3], 15),
+            'success'
+        )
+    end
+
+    -- Reset states
+    state:set('impoundEligible', false, true)
+    state:set('towedBy', nil, true)
 end)

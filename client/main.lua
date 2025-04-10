@@ -15,8 +15,10 @@ end
 function signIn()
     local coords = getSpawn()
     if not coords then return QBCore.Functions.Notify(Config.Lang['error'][1], 'error', 5000) end
-
-    if Config.RenewedPhone and not exports[Config.Phone]:hasPhone() then return QBCore.Functions.Notify(Config.Lang['error'][2], 'error', 5000) end
+    if Config.RenewedPhone and not exports[Config.Phone]:hasPhone() then
+        QBCore.Functions.Notify(Config.Lang['error'][2], 'error', 5000)
+        return
+    end
     if signedIn then return end
 
     TriggerServerEvent('brazzers-tow:server:signIn', coords)
@@ -28,33 +30,36 @@ function signOut()
 end
 
 local function RayCast(origin, target, options, ignoreEntity, radius)
-    local handle = StartShapeTestSweptSphere(origin.x, origin.y, origin.z, target.x, target.y, target.z, radius, options, ignoreEntity, 0)
+    local handle = StartShapeTestSweptSphere(origin.x, origin.y, origin.z, target.x, target.y, target.z, radius, options,
+        ignoreEntity, 0)
     return GetShapeTestResult(handle)
 end
 
 local function ControlEntity(entity)
-	local timeout = false
-	if not NetworkHasControlOfEntity(entity) then
-		NetworkRequestControlOfEntity(entity)
+    local timeout = false
+    if not NetworkHasControlOfEntity(entity) then
+        NetworkRequestControlOfEntity(entity)
 
-		SetTimeout(1000, function () timeout = true end)
+        SetTimeout(1000, function() timeout = true end)
 
-		while not NetworkHasControlOfEntity(entity) and not timeout do
-			NetworkRequestControlOfEntity(entity)
-			Wait(100)
-		end
-	end
-	return NetworkHasControlOfEntity(entity)
+        while not NetworkHasControlOfEntity(entity) and not timeout do
+            NetworkRequestControlOfEntity(entity)
+            Wait(100)
+        end
+    end
+    return NetworkHasControlOfEntity(entity)
 end
 
 local function GetAttachOffset(pTarget)
-	local model = GetEntityModel(pTarget)
-	local minDim, maxDim = GetModelDimensions(model)
-	local vehSize = maxDim - minDim
-	return vector3(0, -(vehSize.y / 2), 0.4 - minDim.z)
+    local model = GetEntityModel(pTarget)
+    local minDim, maxDim = GetModelDimensions(model)
+    local vehSize = maxDim - minDim
+    return vector3(0, -(vehSize.y / 2), 0.4 - minDim.z)
 end
 
 function GetVehicleBehindTowTruck(towTruck, towDistance, towRadius)
+    if not DoesEntityExist(towTruck) then return 0 end
+
     local forwardVector = GetEntityForwardVector(towTruck)
     local originCoords = GetEntityCoords(towTruck)
     local targetCoords = originCoords + (forwardVector * towDistance)
@@ -65,22 +70,22 @@ function GetVehicleBehindTowTruck(towTruck, towDistance, towRadius)
 end
 
 local function FindVehicleAttachedToVehicle(cFlatbed)
-	local handle, vehicle = FindFirstVehicle()
+    local handle, vehicle = FindFirstVehicle()
     local success = nil
 
-	repeat
-		if GetEntityAttachedTo(vehicle) == cFlatbed then
-			return vehicle
-		end
+    repeat
+        if GetEntityAttachedTo(vehicle) == cFlatbed then
+            return vehicle
+        end
 
         success, vehicle = FindNextVehicle(handle)
-	until not success
+    until not success
 
-	EndFindVehicle(handle)
+    EndFindVehicle(handle)
 end
 
 local function attachVehicleToBed(flatbed, target)
-    local distance = #(GetEntityCoords(target) - GetEntityCoords(flatbed)) 
+    local distance = #(GetEntityCoords(target) - GetEntityCoords(flatbed))
     local speed = GetEntitySpeed(target)
 
     if distance <= 15 and speed <= 3.0 then
@@ -91,14 +96,22 @@ local function attachVehicleToBed(flatbed, target)
         local hasControlOfVehicle = ControlEntity(target)
 
         if hasControlOfTow and hasControlOfVehicle then
-            AttachEntityToEntity(target, flatbed, GetEntityBoneIndexByName(flatbed, 'bodyshell'), offset.x, offset.y, offset.z, 0, 0, 0, 1, 1, 0, 0, 0, 1)
+            AttachEntityToEntity(target, flatbed, GetEntityBoneIndexByName(flatbed, 'bodyshell'), offset.x, offset.y,
+                offset.z, 0, 0, 0, 1, 1, 0, 0, 0, 1)
             SetCanClimbOnEntity(target, false)
+            Entity(flatbed).state:set('FlatBed', {
+                carAttached = true,
+                carEntity = NetworkGetNetworkIdFromEntity(target)
+            }, true)
         end
     end
 end
 
 function isTowVehicle(vehicle)
     local retval = false
+
+    if GetEntityType(vehicle) ~= 2 then return retval end
+
     if GetEntityModel(vehicle) == GetHashKey(Config.TowTruck) then
         retval = true
     end
@@ -145,32 +158,35 @@ function hookVehicle(NetworkID)
         TaskTurnPedToFaceCoord(PlayerPedId(), targetCoords, 1.0)
         Wait(1000)
         -- Animation
-        QBCore.Functions.Progressbar("filling_nitrous", Config.Lang['progressBar']['hookVehicle'].title, Config.Lang['progressBar']['hookVehicle'].time, false, false, {
-            disableMovement = true,
-            disableCarMovement = false,
-            disableMouse = false,
-            disableCombat = true,
-        }, {}, {}, {}, function()
-            QBCore.Functions.Progressbar("filling_nitrous", Config.Lang['progressBar']['towVehicle'].title, Config.Lang['progressBar']['towVehicle'].time, false, false, {
+        QBCore.Functions.Progressbar("filling_nitrous", Config.Lang['progressBar']['hookVehicle'].title,
+            Config.Lang['progressBar']['hookVehicle'].time, false, false, {
                 disableMovement = true,
                 disableCarMovement = false,
                 disableMouse = false,
                 disableCombat = true,
             }, {}, {}, {}, function()
-                ClearPedTasks(PlayerPedId())
-                local playerId = GetPlayerServerId(NetworkGetPlayerIndexFromPed(towTruckDriver))
-                if playerId and playerId ~= 0 then return notification(false, Config.Lang['error'][9], 'error') end
+                QBCore.Functions.Progressbar("filling_nitrous", Config.Lang['progressBar']['towVehicle'].title,
+                    Config.Lang['progressBar']['towVehicle'].time, false, false, {
+                        disableMovement = true,
+                        disableCarMovement = false,
+                        disableMouse = false,
+                        disableCombat = true,
+                    }, {}, {}, {}, function()
+                        ClearPedTasks(PlayerPedId())
+                        local playerId = GetPlayerServerId(NetworkGetPlayerIndexFromPed(towTruckDriver))
+                        if playerId and playerId ~= 0 then return notification(false, Config.Lang['error'][9], 'error') end
 
-                attachVehicleToBed(flatbed, target)
-                TriggerServerEvent('brazzers-tow:server:syncHook', true, NetworkGetNetworkIdFromEntity(flatbed), NetworkGetNetworkIdFromEntity(target))
+                        attachVehicleToBed(flatbed, target)
+                        TriggerServerEvent('brazzers-tow:server:syncHook', true, NetworkGetNetworkIdFromEntity(flatbed),
+                            NetworkGetNetworkIdFromEntity(target))
+                    end, function()
+                        ClearPedTasks(PlayerPedId())
+                        notification(false, Config.Lang['error'][10], 'error')
+                    end)
             end, function()
                 ClearPedTasks(PlayerPedId())
                 notification(false, Config.Lang['error'][10], 'error')
             end)
-        end, function()
-            ClearPedTasks(PlayerPedId())
-            notification(false, Config.Lang['error'][10], 'error')
-        end)
     end
 end
 
@@ -189,29 +205,34 @@ function unHookVehicle(NetworkID)
     TaskTurnPedToFaceEntity(PlayerPedId(), flatbed, 1.0)
     Wait(1000)
     -- Animation
-    QBCore.Functions.Progressbar("untowing_vehicle", Config.Lang['progressBar']['unTowVehicle'].title, Config.Lang['progressBar']['unTowVehicle'].time, false, false, {
-        disableMovement = true,
-        disableCarMovement = false,
-        disableMouse = false,
-        disableCombat = true,
-    }, {}, {}, {}, function()
-        QBCore.Functions.Progressbar("unhooking_vehicle", Config.Lang['progressBar']['unHookVehicle'].title, Config.Lang['progressBar']['unHookVehicle'].time, false, false, {
+    QBCore.Functions.Progressbar("untowing_vehicle", Config.Lang['progressBar']['unTowVehicle'].title,
+        Config.Lang['progressBar']['unTowVehicle'].time, false, false, {
             disableMovement = true,
             disableCarMovement = false,
             disableMouse = false,
             disableCombat = true,
         }, {}, {}, {}, function()
-            ClearPedTasks(PlayerPedId())
-            if not IsEntityAttachedToEntity(target, flatbed) then return notification(false, Config.Lang['error'][12], 'error') end
-            TriggerServerEvent('brazzers-tow:server:syncDetach', NetworkGetNetworkIdFromEntity(flatbed))
+            QBCore.Functions.Progressbar("unhooking_vehicle", Config.Lang['progressBar']['unHookVehicle'].title,
+                Config.Lang['progressBar']['unHookVehicle'].time, false, false, {
+                    disableMovement = true,
+                    disableCarMovement = false,
+                    disableMouse = false,
+                    disableCombat = true,
+                }, {}, {}, {}, function()
+                    ClearPedTasks(PlayerPedId())
+                    if not IsEntityAttachedToEntity(target, flatbed) then
+                        return notification(false, Config.Lang['error'][12],
+                            'error')
+                    end
+                    TriggerServerEvent('brazzers-tow:server:syncDetach', NetworkGetNetworkIdFromEntity(flatbed))
+                end, function()
+                    ClearPedTasks(PlayerPedId())
+                    notification(false, Config.Lang['error'][10], 'error')
+                end)
         end, function()
             ClearPedTasks(PlayerPedId())
             notification(false, Config.Lang['error'][10], 'error')
         end)
-    end, function()
-        ClearPedTasks(PlayerPedId())
-        notification(false, Config.Lang['error'][10], 'error')
-    end)
 end
 
 function callTow()
@@ -224,7 +245,7 @@ RegisterNetEvent('brazzers-tow:client:syncDetach', function(flatbed)
     if not state then return end
 
     local attachedVehicle = NetworkGetEntityFromNetworkId(state.carEntity)
-    local drop = GetOffsetFromEntityInWorldCoords(attachedVehicle, 0.0,-5.5,0.0)
+    local drop = GetOffsetFromEntityInWorldCoords(attachedVehicle, 0.0, -5.5, 0.0)
 
     DetachEntity(attachedVehicle, true, true)
     Wait(100)

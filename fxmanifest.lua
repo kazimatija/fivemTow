@@ -12,20 +12,21 @@ client_scripts {
 }
 
 server_scripts {
-	'@oxmysql/lib/MySQL.lua',
+    '@oxmysql/lib/MySQL.lua',
     'server/*.lua',
 }
 
 shared_scripts {
-	'@qb-core/shared/locale.lua',
-	-- '@ox_lib/init.lua', -- IF YOU USING OX UNCOMMENT THIS
-	'shared/*.lua',
+    '@qb-core/shared/locale.lua',
+    '@ox_lib/init.lua',
+    '@Renewed-Lib/init.lua',
+    'shared/*.lua',
 }
 
 escrow_ignore {
-	'client/job.lua',
+    'client/job.lua',
     'client/open.lua',
-	'server/job.lua',
-	'server/open.lua',
-	'shared/*.lua',
+    'server/job.lua',
+    'server/open.lua',
+    'shared/*.lua',
 }
